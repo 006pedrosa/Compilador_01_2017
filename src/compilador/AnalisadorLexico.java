@@ -16,7 +16,7 @@ public class AnalisadorLexico {
      *
      */
    protected static Map<String, String> tS = new HashMap<String, String>();
-   public static String lex;
+   public static String lex, token_atual;
     /**
      *
      */
@@ -66,8 +66,50 @@ public class AnalisadorLexico {
       return tS.get(token);
    }
    
-   public void analisadorLexico(String linha, int posLinha){
+    public static void chamaTabela(){
+      if(buscaHash(lex) == null){
+         setHash(lex, "id");
+      }
+   }
+   
+   public String analisadorLexico(String linha, int posLinha){
        
+       lex = "";
+       
+       if(linha.length() != 0){
+         automatoLexico(linha, posLinha);  
+       }
+       return buscaHash(lex);
+   }
+   
+   public static void automatoLexico(String linha, int posLinha){
+     int estado = 0;
+     
+     for(int i = posLinha; i<linha.length();i++){
+        switch(estado){
+         case 0:
+            if(Character.isLetter(linha.charAt(i)) || linha.charAt(i) == '_'){
+               lex += linha.charAt(i);
+               estado = 1;
+            }else if(linha.charAt(i) == '_'){
+               lex += linha.charAt(i);
+               estado = 3;
+            }
+         case 1:
+             if(Character.isLetter(linha.charAt(i)) || linha.charAt(i) == '_' || Character.isDigit(linha.charAt(i))){
+                  lex += linha.charAt(i);
+                  estado = 1;
+             }else{
+                 i--;
+                 estado = 2;
+             }
+         case 2:
+             i--;
+             chamaTabela();
+             
+        }
+    }
+ 
    }
    
 }

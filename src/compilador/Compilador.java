@@ -18,7 +18,7 @@ import java.util.Map;
 public class Compilador {
     
     public static BufferedReader buffRead;
-    public static String path, linha;
+    public static String path, linha, token_atual;
     public static int erroLinha, posLinha;
     public static AnalisadorLexico analisadorLexico = new AnalisadorLexico();
     /**
@@ -35,9 +35,12 @@ public class Compilador {
       while( (linha = buffRead.readLine())!= null ){ 
          erroLinha++;
          posLinha = 0;
-         analisadorLexico.analisadorLexico(linha, posLinha);
+         while(posLinha < linha.length()){
+            token_atual = analisadorLexico.analisadorLexico(linha, posLinha);
+            System.out.println(token_atual);
+         }
       }
-      System.out.println("SUCESSO");
+      //System.out.println("SUCESSO");
     }
     
 }
