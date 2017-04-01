@@ -18,16 +18,18 @@ import java.util.Map;
 public class Compilador {
     
     public static BufferedReader buffRead;
-    public static String path, linha, token_atual;
-    public static int erroLinha, posLinha;
+    public static String path, linha, token_atual, lex;
     public static AnalisadorLexico analisadorLexico = new AnalisadorLexico();
+    public static Map<String, String> tS = new HashMap<String, String>();
+    
     /**
      * @param args the command line arguments
      * @throws java.io.FileNotFoundException
      */
     public static void main(String[] args) throws FileNotFoundException, IOException {
         // TODO code application logic here
-      
+      int erroLinha, posLinha; 
+    
     //path = args[0];
       path = "C:/Users/Pedro/Documents/FACULDADE/Compiladores/COMPILADOR/Compilador/src/compilador/teste.txt";
       erroLinha=0;

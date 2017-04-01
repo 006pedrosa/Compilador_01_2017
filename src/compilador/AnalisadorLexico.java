@@ -15,7 +15,7 @@ public class AnalisadorLexico {
     /**
      *
      */
-   protected static Map<String, String> tS = new HashMap<String, String>();
+   public static Map<String, String> tS = new HashMap<String, String>();
    public static String lex, token_atual;
     /**
      *
@@ -75,10 +75,12 @@ public class AnalisadorLexico {
    public String analisadorLexico(String linha, int posLinha){
        String token_retorno = "";
        lex = "";
+       int posLinhaAux = posLinha;
        
        if(linha.length() != 0){
-         token_retorno = automatoLexico(linha, posLinha);  
+         token_retorno = automatoLexico(linha, posLinhaAux);  
        }
+       posLinha = posLinhaAux;
        return buscaHash(token_retorno);
    }
    
@@ -114,6 +116,7 @@ public class AnalisadorLexico {
                i--;
                estado = 2;
             }
+            break;
          case 1:
              if(Character.isLetter(linha.charAt(i)) || linha.charAt(i) == '_' || Character.isDigit(linha.charAt(i))){
                   lex += linha.charAt(i);
@@ -122,8 +125,10 @@ public class AnalisadorLexico {
                  i--;
                  estado = 2;
              }
+             break;
          case 2:
              chamaTabela();
+             posLinha = i;
              return lex;
              
          case 3:
@@ -154,6 +159,7 @@ public class AnalisadorLexico {
                  i--;
                  estado = 2;
              }
+             break;
          case 6:
              if(linha.charAt(i) == '='){
                  lex += linha.charAt(i);
@@ -162,6 +168,7 @@ public class AnalisadorLexico {
                  i--;
                  estado = 2;
              }
+             break;
          case 7:
              if(linha.charAt(i) == '*'){
                  lex = "";
@@ -170,19 +177,21 @@ public class AnalisadorLexico {
                  i--;
                  estado = 2;
              }
+             break;
          case 8:
              if(linha.charAt(i) == '*'){
                  estado = 9;
              }else{
                  estado = 8;
              }
-         
+             break;
          case 9:
              if(linha.charAt(i) == '/'){
                  estado = 0;
              }else{
                  estado = 8;
              }
+             break;
         case 10:
              if(linha.charAt(i) == '='){
                  lex += linha.charAt(i);
@@ -191,6 +200,7 @@ public class AnalisadorLexico {
                  i--;
                  estado = 2;
              }
+             break;
          case 666:
                System.out.println("ERRO");
                break;
