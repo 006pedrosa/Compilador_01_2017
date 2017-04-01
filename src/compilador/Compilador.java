@@ -27,7 +27,9 @@ public class Compilador {
      */
     public static void main(String[] args) throws FileNotFoundException, IOException {
         // TODO code application logic here
-      path = args[0];
+      
+    //path = args[0];
+      path = "C:/Users/Pedro/Documents/FACULDADE/Compiladores/COMPILADOR/Compilador/src/compilador/teste.txt";
       erroLinha=0;
 
       buffRead = new BufferedReader(new FileReader(path));

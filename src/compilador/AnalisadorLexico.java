@@ -73,16 +73,16 @@ public class AnalisadorLexico {
    }
    
    public String analisadorLexico(String linha, int posLinha){
-       
+       String token_retorno = "";
        lex = "";
        
        if(linha.length() != 0){
-         automatoLexico(linha, posLinha);  
+         token_retorno = automatoLexico(linha, posLinha);  
        }
-       return buscaHash(lex);
+       return buscaHash(token_retorno);
    }
    
-   public static void automatoLexico(String linha, int posLinha){
+   public static String automatoLexico(String linha, int posLinha){
      int estado = 0;
      
      for(int i = posLinha; i<linha.length();i++){
@@ -94,6 +94,25 @@ public class AnalisadorLexico {
             }else if(linha.charAt(i) == '_'){
                lex += linha.charAt(i);
                estado = 3;
+            }else if(Character.isDigit(linha.charAt(i))){
+               lex += linha.charAt(i);
+               estado = 4;
+            }else if(linha.charAt(i) == '<'){
+               lex += linha.charAt(i);
+               estado = 5;
+            }else if(linha.charAt(i) == '>'){
+               lex += linha.charAt(i);
+               estado = 6;
+            }else if(linha.charAt(i) == '/'){
+               lex += linha.charAt(i);
+               estado = 7;
+            }else if(linha.charAt(i) == '='){
+               lex += linha.charAt(i);
+               estado = 10;
+            }else if(linha.charAt(i) == '+' || linha.charAt(i) == '-' || linha.charAt(i) == ',' || linha.charAt(i) == '*' || linha.charAt(i) == ';'){
+               lex += linha.charAt(i);
+               i--;
+               estado = 2;
             }
          case 1:
              if(Character.isLetter(linha.charAt(i)) || linha.charAt(i) == '_' || Character.isDigit(linha.charAt(i))){
@@ -104,12 +123,84 @@ public class AnalisadorLexico {
                  estado = 2;
              }
          case 2:
-             i--;
              chamaTabela();
+             return lex;
+             
+         case 3:
+             if(linha.charAt(i) == '_'){
+                 lex += linha.charAt(i);
+                 estado = 3;
+             }else if(Character.isLetter(linha.charAt(i)) || Character.isDigit(linha.charAt(i))){
+                 lex += linha.charAt(i);
+                 estado = 1;
+             }else{
+                 estado = 666;
+             }
+             break;
+         case 4:
+             if(Character.isDigit(linha.charAt(i))){
+               lex += linha.charAt(i);
+               estado = 4;
+            }else{
+               i--;
+               estado = 2;
+             }
+             break;
+         case 5:
+             if(linha.charAt(i) == '='){
+                 lex += linha.charAt(i);
+                 estado = 2;
+             }else{
+                 i--;
+                 estado = 2;
+             }
+         case 6:
+             if(linha.charAt(i) == '='){
+                 lex += linha.charAt(i);
+                 estado = 2;
+             }else{
+                 i--;
+                 estado = 2;
+             }
+         case 7:
+             if(linha.charAt(i) == '*'){
+                 lex = "";
+                 estado = 8;
+             }else{
+                 i--;
+                 estado = 2;
+             }
+         case 8:
+             if(linha.charAt(i) == '*'){
+                 estado = 9;
+             }else{
+                 estado = 8;
+             }
+         
+         case 9:
+             if(linha.charAt(i) == '/'){
+                 estado = 0;
+             }else{
+                 estado = 8;
+             }
+        case 10:
+             if(linha.charAt(i) == '='){
+                 lex += linha.charAt(i);
+                 estado = 2;
+             }else{
+                 i--;
+                 estado = 2;
+             }
+         case 666:
+               System.out.println("ERRO");
+               break;
+             // --------- FIM CASE 666 ----------
+            default:
+               System.out.println("ERRO");
              
         }
     }
- 
+     return null;
    }
    
 }
