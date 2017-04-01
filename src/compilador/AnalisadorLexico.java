@@ -113,7 +113,7 @@ public class AnalisadorLexico {
                estado = 10;
             }else if(linha.charAt(i) == '+' || linha.charAt(i) == '-' || linha.charAt(i) == ',' || linha.charAt(i) == '*' || linha.charAt(i) == ';'){
                lex += linha.charAt(i);
-               i--;
+               //i--;
                estado = 2;
             }
             break;
