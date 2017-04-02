@@ -30,7 +30,7 @@ TIPO -> integer | byte | string | boolean
 
 CR -> while'('EXP')' X
 
-X ->  COMANDO | begin {COMANDO} endwhile
+X ->  COMANDO | begin {COMANDO} end
 
 CT -> if'('EXP')' CT_A
 
