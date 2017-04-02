@@ -18,11 +18,11 @@ COMANDO-> CA | CR | CT | CN | CL | CE
 
 DV -> TIPO idY;
 
-DC -> final idY
+DC -> const idY
 
-CA -> id<-EXP;
+CA -> id=EXP;
 
-Y -> <-EXPV | V
+Y -> =EXPV | V
 
 V-> ,idY | ;
 
