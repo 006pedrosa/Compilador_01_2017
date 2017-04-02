@@ -80,12 +80,19 @@ public class Compilador {
        }
    }
    
-   public static String analisadorLexico(String linha){
-       String token_retorno = "";
+   public static String analisadorLexico(String linhaAnalisador) throws IOException{
+       String token_retorno = null;
        lex = "";
        
        if(linha.length() != 0){
-         token_retorno = automatoLexico(linha);  
+            token_retorno = automatoLexico(linhaAnalisador);  
+        }
+       
+       if(token_retorno == null){
+           linha = buffRead.readLine();
+           posLinha = 0;
+           erroLinha++;
+           return buscaHash(analisadorLexico(linha));
        }
        return buscaHash(token_retorno);
    }
@@ -198,6 +205,10 @@ public class Compilador {
          case 9:
              if(linha.charAt(i) == '/'){
                  estado = 0;
+                 if(i == linha.length()-1){
+                     i++;
+                 }
+                 posLinha = i;
              }else{
                  estado = 8;
              }
@@ -223,8 +234,24 @@ public class Compilador {
      return null;
    }
     
-    //-----------------------------------------------FIM DO ANALISADOR LEXICO---------------
-    
+   //-----------------------------------------------FIM DO ANALISADOR LEXICO---------------
+   
+   //--------------------------------------------ANALISADOR SINTATICO-----------------------
+   
+   public static void analisadorSintatico(){
+       //S();
+   }
+   
+   public static void casaToken(String token_esperado) throws IOException{
+       if(token_atual == token_esperado){
+           token_atual = analisadorLexico(linha);
+       }else{
+            System.out.println("ERRO NA LINHA "+ erroLinha + " Token recebido: "+ token_atual);
+        }
+   }
+   
+   //--------------------------------------------FIM DO ANALISADOR SINTATICO
+   
     
     //PROGRAMA PRINCIPAL
     public static void main(String[] args) throws FileNotFoundException, IOException {
@@ -235,7 +262,7 @@ public class Compilador {
 
       buffRead = new BufferedReader(new FileReader(path));
       inicializarHash();
-      while( (linha = buffRead.readLine())!= null ){ 
+      /*while( (linha = buffRead.readLine())!= null ){ 
          erroLinha++;
          posLinha = 0;
          //System.out.println(linha.length());
@@ -243,7 +270,7 @@ public class Compilador {
             token_atual = analisadorLexico(linha);
             System.out.println(token_atual);
          }
-      }
+      }*/
       //System.out.println("SUCESSO");
     }
     

@@ -1,3 +1,4 @@
+/*TESTE*/
 integer x = 10;
 if (a < b) then
 
