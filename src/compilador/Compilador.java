@@ -72,7 +72,7 @@ public class Compilador {
    
     public static void chamaTabela(){
       if(buscaHash(lex) == null){
-         if(Character.isDigit(lex.charAt(0))){
+         if(Character.isDigit(lex.charAt(0)) || lex.charAt(0) == '\''){
             setHash(lex, "const");
          }else{
             setHash(lex, "id");
@@ -128,6 +128,10 @@ public class Compilador {
                lex += linha.charAt(i);
                //i--;
                estado = 2;
+            }else if(linha.charAt(i) == '\''){
+               lex += linha.charAt(i);
+               //i--;
+               estado = 11;
             }
             break;
          case 1:
@@ -220,6 +224,15 @@ public class Compilador {
              }else{
                  i--;
                  estado = 2;
+             }
+             break;
+        case 11:
+             if(linha.charAt(i) == '\''){
+                 lex += linha.charAt(i);
+                 estado = 2;
+             }else{
+                 lex += linha.charAt(i);
+                 estado = 11;
              }
              break;
          case 666:

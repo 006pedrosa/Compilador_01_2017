@@ -24,7 +24,7 @@ CA -> id=EXP;
 
 Y -> =EXPV | V
 
-V-> ,idY | ;
+V-> ,idY | const; | ;
 
 TIPO -> integer | byte | string | boolean
 
