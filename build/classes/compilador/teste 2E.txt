@@ -1,0 +1,7 @@
+/*TESTE 2E com erros*/
+
+main
+if(a<b)then
+
+
+end

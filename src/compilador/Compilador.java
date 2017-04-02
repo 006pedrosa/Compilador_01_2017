@@ -33,18 +33,18 @@ public class Compilador {
       tS.put("while", "while");
       tS.put("if", "if");
       tS.put("else", "else");
-      tS.put("and", "logica");
-      tS.put("or", "logica");
-      tS.put("not", "negacao");
-      tS.put("=", "atribuicao");
+      tS.put("and", "and");
+      tS.put("or", "or");
+      tS.put("not", "not");
+      tS.put("=", "=");
       tS.put("(", "(");
       tS.put(")", ")");
-      tS.put("<", "comparacao");
-      tS.put("<=", "comparacao");
-      tS.put(">", "comparacao");
-      tS.put(">=", "comparacao");
-      tS.put("!=", "comparacao");
-      tS.put("==", "comparacao");
+      tS.put("<", "<");
+      tS.put("<=", "<=");
+      tS.put(">", ">");
+      tS.put(">=", ">=");
+      tS.put("!=", "!=");
+      tS.put("==", "==");
       tS.put(",", ",");
       tS.put("+", "+");
       tS.put("*", "*");
@@ -83,6 +83,13 @@ public class Compilador {
    public static String analisadorLexico(String linhaAnalisador) throws IOException{
        String token_retorno = null;
        lex = "";
+       
+       if(posLinha == linha.length()){
+          linha = buffRead.readLine();
+           posLinha = 0;
+           erroLinha++;
+           linhaAnalisador = linha;
+       }
        
        if(linha.length() != 0){
             token_retorno = automatoLexico(linhaAnalisador);  
@@ -278,7 +285,10 @@ public class Compilador {
        while(token_atual != "end"){
            COMANDO();
        }
-       casaToken("end");
+       
+       if(token_atual !="end"){
+           System.out.println("ERRO NA LINHA "+ erroLinha + " Token recebido: "+ token_atual);
+       }
    }
    //Metodo DECLARACAO
    public static void DECLARACAO() throws IOException{
@@ -293,14 +303,12 @@ public class Compilador {
        TIPO();
        casaToken("id");
        Y();
-       casaToken(";");
    }
    //Metodo DC
    public static void DC() throws IOException{
        casaToken("const");
        casaToken("id");
        Y();
-       casaToken(";");
    }
    //Metodo TIPO
    public static void TIPO() throws IOException{
@@ -480,7 +488,7 @@ public class Compilador {
 		   T();
 	   }else{
 		   T();
-		   while(token_atual != "+" || token_atual != "-" || token_atual != "or"){
+		   while(token_atual == "+" || token_atual == "-" || token_atual == "or"){
 			   if(token_atual == "+"){
 				   casaToken("+");
 				   T();
@@ -498,7 +506,7 @@ public class Compilador {
    //Metodo T
    public static void T() throws IOException{
 	   F();
-	   while(token_atual != "*" || token_atual != "/" || token_atual != "and"){
+	   while(token_atual == "*" || token_atual == "/" || token_atual == "and"){
 		   if(token_atual == "*"){
 			   casaToken("*");
 			   F();
@@ -553,7 +561,7 @@ public class Compilador {
             System.out.println(token_atual);
          }
       }*/
-      //System.out.println("SUCESSO");
+      System.out.println("SUCESSO");
     }
     
 }

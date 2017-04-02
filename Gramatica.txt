@@ -16,15 +16,15 @@ DECLARACAO -> DV | DC
 
 COMANDO-> CA | CR | CT | CN | CL | CE 
 
-DV -> TIPO idY;
+DV -> TIPO idY
 
-DC -> const idY;
+DC -> const idY
 
 CA -> id=EXP;
 
 Y -> =EXPV | V
 
-V-> ,idY | const; | ;
+V-> ,idY | ;
 
 TIPO -> integer | byte | string | boolean
 
