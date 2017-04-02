@@ -355,7 +355,7 @@ public class Compilador {
 		   CN();
 	   }else if(token_atual == "readln"){
 		   CL();
-	   }else if(token_atual == "white" || token_atual == "writeln"){
+	   }else if(token_atual == "write" || token_atual == "writeln"){
 		   CE();
 	   }
    }
@@ -433,7 +433,7 @@ public class Compilador {
    }
    //Metodo CE
    public static void CE() throws IOException{
-	   if(token_atual == "white"){
+	   if(token_atual == "write"){
 		   casaToken("while");
 		   casaToken("(");
 		   EXP();
