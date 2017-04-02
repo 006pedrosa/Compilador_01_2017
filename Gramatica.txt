@@ -32,9 +32,9 @@ CR -> while'('EXP')' X
 
 X ->  COMANDO | begin {COMANDO} end
 
-CT -> if'('EXP')' CT_A
+CT -> if'('EXP')' then CT_A
 
-CT_A -> COMANDO [else COMANDO]| begin {COMANDO} endif [else begin {COMANDO} endelse]
+CT_A -> COMANDO [else COMANDO]| begin {COMANDO} end [else begin {COMANDO} end]
 
 CN -> ';'
 
