@@ -48,5 +48,5 @@ EXPS -> [+|-]T{(+|-|or)T}
 
 T -> F{(*|/|and)F}
 
-F -> "("EXP")" | id | const | not F | TRUE | FALSE
+F -> "("EXP")" | id | const | not F | true | false
    

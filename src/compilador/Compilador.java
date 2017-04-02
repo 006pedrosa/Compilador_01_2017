@@ -323,13 +323,13 @@ public class Compilador {
        }
    }
    //Metodo COMANDO
-   public static void COMANDO(){
+   public static void COMANDO() throws IOException{
 	   if(token_atual == "id"){
 		   CA();
 	   }else if(token_atual == "while"){
 		   CR();
 	   }else if(token_atual =="if"){
-		   CA();
+		   CT();
 	   }else if(token_atual == ";"){
 		   CN();
 	   }else if(token_atual == "readln"){
@@ -358,7 +358,7 @@ public class Compilador {
    public static void X() throws IOException{
 	   if(token_atual == "begin"){
 		   casaToken("begin");
-		   while(token_atual!= "end"){              // Verificar se esta correto
+		   while(token_atual != "end"){              // Verificar se esta correto
 			   COMANDO();
 		   }
 		   casaToken("end");
@@ -379,7 +379,7 @@ public class Compilador {
    public static void CT_A() throws IOException{
 	   if(token_atual =="begin"){
 		   casaToken("begin");
-		   while(token_atual=!"end"){
+		   while(token_atual != "end"){
 			   COMANDO();
 		   }
 		   casaToken("end");
@@ -511,10 +511,10 @@ public class Compilador {
 	   }else if(token_atual == "not"){
 		   casaToken("not");
 		   F();
-	   }else if(token_atual == "TRUE"){
-		   casaToken("TRUE");
-	   }else if (token_atual == "FALSE"){
-		   casaToken("FALSE");
+	   }else if(token_atual == "true"){
+		   casaToken("true");
+	   }else if (token_atual == "false"){
+		   casaToken("false");
 	   }
    }
    
