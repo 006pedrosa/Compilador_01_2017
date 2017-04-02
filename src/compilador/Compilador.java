@@ -15,21 +15,21 @@ import java.util.Map;
 
 
 public class Compilador {
-    
+
     public static BufferedReader buffRead;
     public static String path, linha, token_atual, lex;
     public static AnalisadorLexico analisadorLexico = new AnalisadorLexico();
-    public static int erroLinha, posLinha; 
+    public static int erroLinha, posLinha;
     public static Map<String, String> tS = new HashMap<String, String>();
-   
+
     //-----------------------------------------------ANALISADOR LEXICO----------------------
-    
+
     public static void inicializarHash(){
       tS.put("const", "const");
       tS.put("integer", "integer");
       tS.put("byte", "byte");
       tS.put("string", "string");
-      tS.put("boolean", "boolean");   
+      tS.put("boolean", "boolean");
       tS.put("while", "while");
       tS.put("if", "if");
       tS.put("else", "else");
@@ -61,7 +61,7 @@ public class Compilador {
       tS.put("true", "true");
       tS.put("false", "false");
    }
-    
+
    public static void setHash(String token, String lexema){
       tS.put(token, lexema);
    }
@@ -69,7 +69,7 @@ public class Compilador {
    public static String buscaHash(String token){
       return tS.get(token);
    }
-   
+
     public static void chamaTabela(){
       if(buscaHash(lex) == null){
          if(Character.isDigit(lex.charAt(0)) || lex.charAt(0) == '\''){
@@ -79,22 +79,22 @@ public class Compilador {
          }
        }
    }
-   
+
    public static String analisadorLexico(String linhaAnalisador) throws IOException{
        String token_retorno = null;
        lex = "";
-       
+
        if(posLinha == linha.length()){
           linha = buffRead.readLine();
            posLinha = 0;
            erroLinha++;
            linhaAnalisador = linha;
        }
-       
+
        if(linha.length() != 0){
-            token_retorno = automatoLexico(linhaAnalisador);  
+            token_retorno = automatoLexico(linhaAnalisador);
         }
-       
+
        if(token_retorno == null){
            linha = buffRead.readLine();
            posLinha = 0;
@@ -103,10 +103,10 @@ public class Compilador {
        }
        return buscaHash(token_retorno);
    }
-   
+
    public static String automatoLexico(String linha){
      int estado = 0;
-     
+
      for(int i = posLinha; i<=linha.length();i++){
         switch(estado){
          case 0:
@@ -158,7 +158,7 @@ public class Compilador {
              chamaTabela();
              posLinha = i;
              return lex;
-             
+
          case 3:
              if(linha.charAt(i) == '_'){
                  lex += linha.charAt(i);
@@ -248,16 +248,16 @@ public class Compilador {
              // --------- FIM CASE 666 ----------
             default:
                System.out.println("ERRO");
-             
+
         }
     }
      return null;
    }
-    
+
    //-----------------------------------------------FIM DO ANALISADOR LEXICO---------------
-   
+
    //--------------------------------------------ANALISADOR SINTATICO-----------------------
-   
+
    //Metodo analisadorSintatico
    public static void analisadorSintatico() throws IOException{
       inicializarHash();
@@ -267,7 +267,7 @@ public class Compilador {
       token_atual = analisadorLexico(linha);
       S();
    }
-   //Metodo casaToken   
+   //Metodo casaToken
    public static void casaToken(String token_esperado) throws IOException{
        if(token_atual == token_esperado){
            token_atual = analisadorLexico(linha);
@@ -285,7 +285,7 @@ public class Compilador {
        while(token_atual != "end"){
            COMANDO();
        }
-       
+
        if(token_atual !="end"){
            System.out.println("ERRO NA LINHA "+ erroLinha + " Token recebido: "+ token_atual);
        }
@@ -332,7 +332,7 @@ public class Compilador {
            V();
        }
    }
-   
+
    //Metodo V
    public static void V() throws IOException{
        if(token_atual == ";"){
@@ -373,7 +373,7 @@ public class Compilador {
 	   EXP();
 	   casaToken(")");
 	   X();
-	   
+
    }
    //Metodo X
    public static void X() throws IOException{
@@ -434,7 +434,7 @@ public class Compilador {
    //Metodo CE
    public static void CE() throws IOException{
 	   if(token_atual == "write"){
-		   casaToken("while");
+		   casaToken("write");
 		   casaToken("(");
 		   EXP();
 		   while(token_atual != ")"){
@@ -501,7 +501,7 @@ public class Compilador {
 			   }
 		   }//fim while
 	   }
-	   
+
    }
    //Metodo T
    public static void T() throws IOException{
@@ -538,10 +538,10 @@ public class Compilador {
 		   casaToken("false");
 	   }
    }
-   
+
    //--------------------------------------------FIM DO ANALISADOR SINTATICO
-   
-    
+
+
     //PROGRAMA PRINCIPAL
     public static void main(String[] args) throws FileNotFoundException, IOException {
         // TODO code application logic here
@@ -551,8 +551,8 @@ public class Compilador {
 
       buffRead = new BufferedReader(new FileReader(path));
       analisadorSintatico();
-      
-      /*while( (linha = buffRead.readLine())!= null ){ 
+
+      /*while( (linha = buffRead.readLine())!= null ){
          erroLinha++;
          posLinha = 0;
          //System.out.println(linha.length());
@@ -563,5 +563,5 @@ public class Compilador {
       }*/
       System.out.println("SUCESSO");
     }
-    
+
 }
