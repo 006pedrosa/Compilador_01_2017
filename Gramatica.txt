@@ -1,0 +1,52 @@
+﻿=============================DEFINIÇÕES===========================
+DV - Declaração de Variável
+DC - Declaração de COnstantes
+CA - Comando de Atribuição
+CR - Comando de Repetição
+CT - Comando de Teste
+CN - Comando Nulo
+CL - Comando de Leitura
+CE - Comando de Escrita
+TIPO - tipos de variáveis 
+==================================================================
+
+S -> {DECLARACAO}main{COMANDO}end
+
+DECLARACAO -> DV | DC
+
+COMANDO-> CA | CR | CT | CN | CL | CE 
+
+DV -> TIPO idY;
+
+DC -> final idY
+
+CA -> id<-EXP;
+
+Y -> <-EXPV | V
+
+V-> ,idY | ;
+
+TIPO -> integer | byte | string | boolean
+
+CR -> while'('EXP')' X
+
+X ->  COMANDO | begin {COMANDO} endwhile
+
+CT -> if'('EXP')' CT_A
+
+CT_A -> COMANDO [else COMANDO]| begin {COMANDO} endif [else begin {COMANDO} endelse]
+
+CN -> ';'
+
+CL -> readln'('id')';
+
+CE -> write'('EXP{,EXP}')'; | writeln'('EXP{,EXP}')';
+
+EXP -> EXPS[(<|>|<=|>=|==|!=)EXPS]
+
+EXPS -> [+|-]T{(+|-|or)T}
+
+T -> F{(*|/|and)F}
+
+F -> "("EXP")" | id | const | not F | TRUE | FALSE
+   
