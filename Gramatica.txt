@@ -18,7 +18,7 @@ COMANDO-> CA | CR | CT | CN | CL | CE
 
 DV -> TIPO idY;
 
-DC -> const idY
+DC -> const idY;
 
 CA -> id=EXP;
 

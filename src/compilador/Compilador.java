@@ -238,8 +238,13 @@ public class Compilador {
    
    //--------------------------------------------ANALISADOR SINTATICO-----------------------
    
-   public static void analisadorSintatico(){
-       //S();
+   public static void analisadorSintatico() throws IOException{
+      inicializarHash();
+      linha = buffRead.readLine();
+      erroLinha++;
+      posLinha = 0;
+      token_atual = analisadorLexico(linha);
+      S();
    }
    
    public static void casaToken(String token_esperado) throws IOException{
@@ -247,7 +252,79 @@ public class Compilador {
            token_atual = analisadorLexico(linha);
        }else{
             System.out.println("ERRO NA LINHA "+ erroLinha + " Token recebido: "+ token_atual);
+            System.exit(0);
         }
+   }
+   
+   public static void S() throws IOException{
+       while(token_atual != "main"){
+           DECLARACAO();
+       }
+       casaToken("main");
+       while(token_atual != "end"){
+           COMANDO();
+       }
+       casaToken("end");
+   }
+   
+   public static void DECLARACAO() throws IOException{
+       if(token_atual == "const"){
+           DC();
+       }else{
+           DV();
+       }
+   }
+   
+   public static void DV() throws IOException{
+       TIPO();
+       casaToken("id");
+       Y();
+       casaToken(";");
+   }
+   
+   public static void DC() throws IOException{
+       casaToken("const");
+       casaToken("id");
+       Y();
+       casaToken(";");
+   }
+   
+   public static void TIPO() throws IOException{
+       if(token_atual == "integer"){
+           casaToken("integer");
+       }else if(token_atual == "byte"){
+           casaToken("byte");
+       }else if(token_atual == "string"){
+           casaToken("string");
+       }else{
+           casaToken("boolean");
+       }
+   }
+   
+   public static void Y() throws IOException{
+       if(token_atual == "="){
+           casaToken("=");
+           EXP();
+           V();
+       }else{
+           V();
+       }
+   }
+   
+   public static void EXP(){
+   }
+   
+   public static void V() throws IOException{
+       if(token_atual == ";"){
+           casaToken(";");
+       }else{
+           casaToken(",");
+           casaToken("id");
+           Y();
+       }
+   }
+   
+   public static void COMANDO(){
    }
    
    //--------------------------------------------FIM DO ANALISADOR SINTATICO
@@ -261,7 +338,8 @@ public class Compilador {
       erroLinha=0;
 
       buffRead = new BufferedReader(new FileReader(path));
-      inicializarHash();
+      analisadorSintatico();
+      
       /*while( (linha = buffRead.readLine())!= null ){ 
          erroLinha++;
          posLinha = 0;
