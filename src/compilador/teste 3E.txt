@@ -1,0 +1,9 @@
+/*TESTE 2E com erros*/
+
+int a;
+
+main
+if(a<b)then
+
+end
+end
