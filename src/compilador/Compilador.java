@@ -436,9 +436,87 @@ public class Compilador {
    }
    //Metodp EXP
    public static void EXP()throws IOException{
+	   EXPS();
+	   if(token_atual =="<"){
+		   casaToken("<");
+		   EXPS();
+	   }else if(token_atual==">"){
+		   casaToken(">");
+		   EXPS();
+	   }else if(token_atual=="<="){
+		   casaToken("<=");
+		   EXPS();
+	   }else if(token_atual==">="){
+		   casaToken(">=");
+		   EXPS();
+	   }else if(token_atual=="=="){
+		   casaToken("==");
+		   EXPS();
+	   }else if(token_atual=="!="){
+		   casaToken("!=");
+		   EXPS();
+	   }
+	}
+   //Metodo EXPS
+   public static void EXPS()throws IOException{
+	   if(token_atual == "+"){
+		   casaToken("+");
+		   T();
+	   }else if(token_atual == "-"){
+		   casaToken("-");
+		   T();
+	   }else{
+		   T();
+		   while(token_atual != "+" || token_atual != "-" || token_atual != "or"){
+			   if(token_atual == "+"){
+				   casaToken("+");
+				   T();
+			   }else if(token_atual == "-"){
+				   casaToken("-");
+				   T();
+			   }else if(token_atual == "or"){
+				   casaToken("or");
+				   T();
+			   }
+		   }//fim while
+	   }
 	   
    }
-   
+   //Metodo T
+   public static void T() throws IOException{
+	   F();
+	   while(token_atual != "*" || token_atual != "/" || token_atual != "and"){
+		   if(token_atual == "*"){
+			   casaToken("*");
+			   F();
+		   }else if(token_atual == "/"){
+			   casaToken("/");
+			   F();
+		   }else if(token_atual == "and"){
+			   casaToken("and");
+			   F();
+		   }
+	   }//fim while
+   }
+   //Metodo F
+   public static void F() throws IOException{
+	   if(token_atual == "("){
+		   casaToken("(");
+		   EXP();
+		   casaToken(")");
+	   }else if(token_atual == "id"){
+		   casaToken("id");
+	   }else if(token_atual == "const"){
+		   casaToken("const");
+	   }else if(token_atual == "not"){
+		   casaToken("not");
+		   F();
+	   }else if(token_atual == "TRUE"){
+		   casaToken("TRUE");
+	   }else if (token_atual == "FALSE"){
+		   casaToken("FALSE");
+	   }
+   }
    
    //--------------------------------------------FIM DO ANALISADOR SINTATICO
    
