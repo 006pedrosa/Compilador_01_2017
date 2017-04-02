@@ -238,6 +238,7 @@ public class Compilador {
    
    //--------------------------------------------ANALISADOR SINTATICO-----------------------
    
+   //Metodo analisadorSintatico
    public static void analisadorSintatico() throws IOException{
       inicializarHash();
       linha = buffRead.readLine();
@@ -246,7 +247,7 @@ public class Compilador {
       token_atual = analisadorLexico(linha);
       S();
    }
-   
+   //Metodo casaToken   
    public static void casaToken(String token_esperado) throws IOException{
        if(token_atual == token_esperado){
            token_atual = analisadorLexico(linha);
@@ -255,7 +256,7 @@ public class Compilador {
             System.exit(0);
         }
    }
-   
+   //Metodo S
    public static void S() throws IOException{
        while(token_atual != "main"){
            DECLARACAO();
@@ -266,7 +267,7 @@ public class Compilador {
        }
        casaToken("end");
    }
-   
+   //Metodo DECLARACAO
    public static void DECLARACAO() throws IOException{
        if(token_atual == "const"){
            DC();
@@ -274,21 +275,21 @@ public class Compilador {
            DV();
        }
    }
-   
+   //Metodo DV
    public static void DV() throws IOException{
        TIPO();
        casaToken("id");
        Y();
        casaToken(";");
    }
-   
+   //Metodo DC
    public static void DC() throws IOException{
        casaToken("const");
        casaToken("id");
        Y();
        casaToken(";");
    }
-   
+   //Metodo TIPO
    public static void TIPO() throws IOException{
        if(token_atual == "integer"){
            casaToken("integer");
@@ -300,7 +301,7 @@ public class Compilador {
            casaToken("boolean");
        }
    }
-   
+   //Metodo Y
    public static void Y() throws IOException{
        if(token_atual == "="){
            casaToken("=");
@@ -311,9 +312,7 @@ public class Compilador {
        }
    }
    
-   public static void EXP(){
-   }
-   
+   //Metodo V
    public static void V() throws IOException{
        if(token_atual == ";"){
            casaToken(";");
@@ -323,9 +322,123 @@ public class Compilador {
            Y();
        }
    }
-   
+   //Metodo COMANDO
    public static void COMANDO(){
+	   if(token_atual == "id"){
+		   CA();
+	   }else if(token_atual == "while"){
+		   CR();
+	   }else if(token_atual =="if"){
+		   CA();
+	   }else if(token_atual == ";"){
+		   CN();
+	   }else if(token_atual == "readln"){
+		   CL();
+	   }else if(token_atual == "white" || token_atual == "writeln"){
+		   CE();
+	   }
    }
+   //Metodo CA
+   public static void CA() throws IOException{
+		casaToken("id");
+		casaToken("=");
+		EXP();
+		casaToken(";");
+   }
+   //Metodo CR
+   public static void CR() throws IOException{
+	   casaToken("while");
+	   casaToken("(");
+	   EXP();
+	   casaToken(")");
+	   X();
+	   
+   }
+   //Metodo X
+   public static void X() throws IOException{
+	   if(token_atual == "begin"){
+		   casaToken("begin");
+		   while(token_atual!= "end"){              // Verificar se esta correto
+			   COMANDO();
+		   }
+		   casaToken("end");
+	   }else{
+		   COMANDO();
+	   }
+   }
+   //Metodo CT
+   public static void CT() throws IOException{
+		casaToken("if");
+		casaToken("(");
+		EXP();
+		casaToken(")");
+		casaToken("then");
+		CT_A();
+   }
+   //Metodo CT_A
+   public static void CT_A() throws IOException{
+	   if(token_atual =="begin"){
+		   casaToken("begin");
+		   while(token_atual=!"end"){
+			   COMANDO();
+		   }
+		   casaToken("end");
+		   if(token_atual == "else"){
+			   casaToken("else");
+			   casaToken("begin");
+			   while(token_atual!= "end"){
+				   COMANDO();
+			   }
+		   }
+	   }else{
+		   COMANDO();
+		   if(token_atual =="else"){
+			   casaToken("else");
+			   COMANDO();
+		   }
+	   }
+   }
+   //Metodo CN
+   public static void CN() throws IOException{
+	   casaToken(";");
+   }
+   //Metodo CL
+   public static void CL() throws IOException{
+	   casaToken("readln");
+	   casaToken("(");
+	   casaToken("id");
+	   casaToken(")");
+	   casaToken(";");
+   }
+   //Metodo CE
+   public static void CE() throws IOException{
+	   if(token_atual == "white"){
+		   casaToken("while");
+		   casaToken("(");
+		   EXP();
+		   while(token_atual != ")"){
+			   casaToken(",");
+			   EXP();
+		   }
+		   casaToken(")");
+		   casaToken(";");
+	   }else{
+		   casaToken("writeln");
+		   casaToken("(");
+		   EXP();
+		   while(token_atual != ")"){
+			   casaToken(",");
+			   EXP();
+		   }
+		   casaToken(")");
+		   casaToken(";");
+	   }
+   }
+   //Metodp EXP
+   public static void EXP()throws IOException{
+	   
+   }
+   
    
    //--------------------------------------------FIM DO ANALISADOR SINTATICO
    
