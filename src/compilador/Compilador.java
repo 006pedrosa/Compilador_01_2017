@@ -226,7 +226,7 @@ public class Compilador {
     //-----------------------------------------------FIM DO ANALISADOR LEXICO---------------
     
     
-    
+    //PROGRAMA PRINCIPAL
     public static void main(String[] args) throws FileNotFoundException, IOException {
         // TODO code application logic here
     //path = args[0];
