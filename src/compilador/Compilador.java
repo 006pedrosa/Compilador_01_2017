@@ -83,12 +83,18 @@ public class Compilador {
    public static String analisadorLexico(String linhaAnalisador) throws IOException{
        String token_retorno = null;
        lex = "";
-
+       if(linha == null){
+           return "EOF";
+       }
        if(posLinha == linha.length()){
           linha = buffRead.readLine();
+          if(linha != null){
            posLinha = 0;
            erroLinha++;
            linhaAnalisador = linha;
+          } else {
+            return "EOF";
+          }
        }
 
        if(linha.length() != 0){
@@ -97,9 +103,13 @@ public class Compilador {
 
        if(token_retorno == null){
            linha = buffRead.readLine();
-           posLinha = 0;
-           erroLinha++;
-           return buscaHash(analisadorLexico(linha));
+           if(linha != null){
+                posLinha = 0;
+                erroLinha++;
+                return buscaHash(analisadorLexico(linha));
+           } else {
+                return "EOF";
+          }
        }
        return buscaHash(token_retorno);
    }
@@ -283,6 +293,10 @@ public class Compilador {
       posLinha = 0;
       token_atual = analisadorLexico(linha);
       S();
+      if(token_atual != "EOF"){
+          System.out.println("ERRO NA LINHA "+ erroLinha + " Token recebido: "+ token_atual);
+          System.exit(0);
+      }
    }
    //Metodo casaToken
    public static void casaToken(String token_esperado) throws IOException{
@@ -303,11 +317,7 @@ public class Compilador {
        while(token_atual != "end"){
            COMANDO();
        }
-
-       if(token_atual !="end"){
-           System.out.println("ERRO NA LINHA "+ erroLinha + " Token recebido: "+ token_atual);
-           System.exit(0);
-       }
+       casaToken("end");
    }
    //Metodo DECLARACAO
    public static void DECLARACAO() throws IOException{
@@ -567,25 +577,16 @@ public class Compilador {
 
     //PROGRAMA PRINCIPAL
     public static void main(String[] args) throws FileNotFoundException, IOException {
-        // TODO code application logic here
-    //path = args[0];
-      path = "C:/Users/lucas/Documents/NetBeansProjects/Compilador/src/compilador/teste.txt";
+      // TODO code application logic here
+      path = args[0];
+      //path = "C:/Users/lucas/Documents/NetBeansProjects/Compilador/src/compilador/teste.txt";
       //path = "C:/Users/Pedro/Documents/FACULDADE/Compiladores/BACKUP_TP_COMPILA/Compilador/src/compilador/exemplo.l";
       erroLinha=0;
 
       buffRead = new BufferedReader(new FileReader(path));
       analisadorSintatico();
 
-      /*while( (linha = buffRead.readLine())!= null ){
-         erroLinha++;
-         posLinha = 0;
-         //System.out.println(linha.length());
-         while(posLinha < linha.length()){
-            token_atual = analisadorLexico(linha);
-            System.out.println(token_atual);
-         }
-      }*/
-      System.out.println("SUCESSO");
+      System.out.println("COMPILADO COM SUCESSO");
     }
 
 }
