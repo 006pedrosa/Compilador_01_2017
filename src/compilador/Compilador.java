@@ -106,8 +106,6 @@ public class Compilador {
 
    public static String automatoLexico(String linha){
      int estado = 0;
-
-     System.out.println("Tamanho da linha: "+linha.length());
      for(int i = posLinha; i<=linha.length();i++){
         switch(estado){
          case 0:
@@ -211,7 +209,12 @@ public class Compilador {
              if(linha.charAt(i) == '*'){
                  estado = 9;
              }else{
-                 estado = 8;
+                 if(i == linha.length()-1){
+                    System.out.println("ERRO NA LINHA "+ erroLinha + " Token recebido: "+ token_atual);
+                    System.exit(0);
+                 }else{
+                     estado = 8;
+                 }
              }
              break;
          case 9:
@@ -239,8 +242,13 @@ public class Compilador {
                  lex += linha.charAt(i);
                  estado = 12;
              }else{
-                 lex += linha.charAt(i);
-                 estado = 11;
+                 if(i == linha.length()-1){
+                    estado = 2;
+                 }else{
+                    lex += linha.charAt(i);
+                    estado = 11;
+                 }
+                 
              }
              break;
         case 12:
@@ -298,6 +306,7 @@ public class Compilador {
 
        if(token_atual !="end"){
            System.out.println("ERRO NA LINHA "+ erroLinha + " Token recebido: "+ token_atual);
+           System.exit(0);
        }
    }
    //Metodo DECLARACAO
@@ -367,7 +376,10 @@ public class Compilador {
 		   CL();
 	   }else if(token_atual == "write" || token_atual == "writeln"){
 		   CE();
-	   }
+	   }else{
+                System.out.println("ERRO NA LINHA "+ erroLinha + " Token recebido: "+ token_atual);
+                System.exit(0);
+           }
    }
    //Metodo CA
    public static void CA() throws IOException{
@@ -471,19 +483,19 @@ public class Compilador {
 	   if(token_atual =="<"){
 		   casaToken("<");
 		   EXPS();
-	   }else if(token_atual==">"){
+	   }else if(token_atual == ">"){
 		   casaToken(">");
 		   EXPS();
-	   }else if(token_atual=="<="){
+	   }else if(token_atual == "<="){
 		   casaToken("<=");
 		   EXPS();
-	   }else if(token_atual==">="){
+	   }else if(token_atual == ">="){
 		   casaToken(">=");
 		   EXPS();
-	   }else if(token_atual=="=="){
+	   }else if(token_atual == "=="){
 		   casaToken("==");
 		   EXPS();
-	   }else if(token_atual=="!="){
+	   }else if(token_atual =="!="){
 		   casaToken("!=");
 		   EXPS();
 	   }
@@ -556,7 +568,8 @@ public class Compilador {
     public static void main(String[] args) throws FileNotFoundException, IOException {
         // TODO code application logic here
     //path = args[0];
-      path = "C:/Users/lucas/Documents/NetBeansProjects/Compilador/src/compilador/novo_teste.l";
+      //path = "C:/Users/lucas/Documents/NetBeansProjects/Compilador/src/compilador/novo_teste.l";
+      path = "C:/Users/Pedro/Documents/FACULDADE/Compiladores/BACKUP_TP_COMPILA/Compilador/src/compilador/teste.txt";
       erroLinha=0;
 
       buffRead = new BufferedReader(new FileReader(path));
