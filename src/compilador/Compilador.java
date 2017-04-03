@@ -248,7 +248,7 @@ public class Compilador {
                     lex += linha.charAt(i);
                     estado = 11;
                  }
-                 
+
              }
              break;
         case 12:
@@ -432,6 +432,7 @@ public class Compilador {
 			   while(token_atual!= "end"){
 				   COMANDO();
 			   }
+                           casaToken("end");
 		   }
 	   }else{
 		   COMANDO();
@@ -568,8 +569,8 @@ public class Compilador {
     public static void main(String[] args) throws FileNotFoundException, IOException {
         // TODO code application logic here
     //path = args[0];
-      //path = "C:/Users/lucas/Documents/NetBeansProjects/Compilador/src/compilador/novo_teste.l";
-      path = "C:/Users/Pedro/Documents/FACULDADE/Compiladores/BACKUP_TP_COMPILA/Compilador/src/compilador/teste.txt";
+      path = "C:/Users/lucas/Documents/NetBeansProjects/Compilador/src/compilador/teste.txt";
+      //path = "C:/Users/Pedro/Documents/FACULDADE/Compiladores/BACKUP_TP_COMPILA/Compilador/src/compilador/exemplo.l";
       erroLinha=0;
 
       buffRead = new BufferedReader(new FileReader(path));
