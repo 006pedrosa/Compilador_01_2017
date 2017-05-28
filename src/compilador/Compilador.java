@@ -79,7 +79,7 @@ public class Compilador {
          }else{
             setHash(lex, "id", "classe-var");
          }
-       }else{
+       }else if (buscaHash(lex) == "id" || buscaHash(lex) == "const"){
           System.out.println("identificador já declarado "+ lex);
           System.exit(0);
       }
