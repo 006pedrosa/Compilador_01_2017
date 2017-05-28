@@ -12,15 +12,15 @@ import java.lang.*;
 import java.util.HashMap;
 import java.util.Map;
 
-
-
 public class Compilador {
 
     public static BufferedReader buffRead;
-    public static String path, linha, token_atual, lex;
-    public static AnalisadorLexico analisadorLexico = new AnalisadorLexico();
+    public static String path, linha, token_atual, lex, tipoId;
+    //public static AnalisadorLexico analisadorLexico = new AnalisadorLexico();
     public static int erroLinha, posLinha;
     public static Map<String, String> tS = new HashMap<String, String>();
+    public static Map<String, String> hashTipo = new HashMap<String, String>();
+    public static Map<String, String> hashClasse = new HashMap<String, String>();
 
     //-----------------------------------------------ANALISADOR LEXICO----------------------
 
@@ -62,8 +62,10 @@ public class Compilador {
       tS.put("false", "false");
    }
 
-   public static void setHash(String token, String lexema){
+   public static void setHash(String token, String lexema, String classe){
       tS.put(token, lexema);
+      hashTipo.put(token, tipoId);
+      hashClasse.put(token, classe);
    }
    //Efetua uma busca na hash pelo token desejado, retorna null se não encontrado
    public static String buscaHash(String token){
@@ -73,11 +75,14 @@ public class Compilador {
     public static void chamaTabela(){
       if(buscaHash(lex) == null){
          if(Character.isDigit(lex.charAt(0)) || lex.charAt(0) == '\''){
-            setHash(lex, "const");
+            setHash(lex, "const", "classe-const");
          }else{
-            setHash(lex, "id");
+            setHash(lex, "id", "classe-var");
          }
-       }
+       }else{
+          System.out.println("identificador já declarado "+ lex);
+          System.exit(0);
+      }
    }
 
    public static String analisadorLexico(String linhaAnalisador) throws IOException{
@@ -290,7 +295,7 @@ public class Compilador {
            token_atual = analisadorLexico(linha);
            System.out.println(token_atual);
        }else{
-            System.out.println("ERRO NA LINHA "+ erroLinha + " Token recebido: "+ token_atual);
+            System.out.println("ERRO NA LINHA "+ erroLinha + " Token recebido: "+ token_atual + " TOKEN ESPERADO: "+token_esperado);
             System.exit(0);
         }
    }
@@ -332,12 +337,16 @@ public class Compilador {
    //Metodo TIPO
    public static void TIPO() throws IOException{
        if(token_atual == "integer"){
+           tipoId = "tipo-inteiro";
            casaToken("integer");
        }else if(token_atual == "byte"){
+           tipoId = "tipo-byte";
            casaToken("byte");
        }else if(token_atual == "string"){
+           tipoId = "tipo-string";
            casaToken("string");
        }else{
+           tipoId = "tipo-logico";
            casaToken("boolean");
        }
    }
@@ -569,7 +578,7 @@ public class Compilador {
         // TODO code application logic here
     //path = args[0];
       //path = "C:/Users/lucas/Documents/NetBeansProjects/Compilador/src/compilador/novo_teste.l";
-      path = "C:/Users/Pedro/Documents/FACULDADE/Compiladores/BACKUP_TP_COMPILA/Compilador/src/compilador/teste.txt";
+      path = "C:/Users/Pedro/Documents/FACULDADE_PEDRO/Compiladores/BACKUP_TP_COMPILA/Compilador/src/compilador/t1.l";
       erroLinha=0;
 
       buffRead = new BufferedReader(new FileReader(path));

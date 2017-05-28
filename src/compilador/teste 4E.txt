@@ -1,9 +1,0 @@
-/*TESTE 4E com erros*/
-
-integer a = 50;
-
-main
-if(a<b)then
-while(8<40) a = a +10
-end
-end
