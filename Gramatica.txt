@@ -141,12 +141,17 @@ F -> "("EXP")"(9) | id(6) | const(7) | not F(10) | true(8) | false(8)
 		FUNCAO EXP
 18-> EXPS.tipo = exps1.tipo
 
-19-> if(lex == <OPERADOR-LOGICO> //ESCREVER PARA TODOS OS OPERADORES LOGICOS//)
+19-> if(lex == <OPERADOR-LOGICO> //ESCREVER PARA TODOS OS OPERADORES LOGICOS diferente de ==//)
 		auxiliarToken = "OPERADOR-LOGICO"
-
-20-> if(auxiliarToken == "OPERADOR-LOGICO"){
+	else
+		auxiliarToken = lex
+20-> if(auxiliarToken == "OPERADOR-LOGICO"){ //CORRIGIR
 		if(EXPS1.tipo != "tipo-logico" || EXPS2.tipo != "tipo-logico" )
 			erro(tipos incompativeis)
 		else
 			EXP.tipo = "tipo-logico"
+    else if (auxiliarToken == "=="){	
+		if(EXPS1.tipo == "tipo-string" || EXPS2.tipo == "tipo-string" )
+			
+	}
 	}
