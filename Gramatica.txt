@@ -16,7 +16,7 @@ DECLARACAO -> DV | DC
 
 COMANDO-> CA | CR | CT | CN | CL | CE 
 
-DV -> TIPO idY
+DV -> TIPO id(5)Y
 
 DC -> const idY
 
@@ -26,7 +26,7 @@ Y -> =EXPV | V
 
 V-> ,idY | ;
 
-TIPO -> integer | byte | string | boolean
+TIPO -> integer(1) | byte(2) | string(3) | boolean(4)
 
 CR -> while'('EXP')' X
 
@@ -42,11 +42,111 @@ CL -> readln'('id')';
 
 CE -> write'('EXP{,EXP}')'; | writeln'('EXP{,EXP}')';
 
-EXP -> EXPS[(<|>|<=|>=|==|!=)EXPS]
+EXP -> EXPS(18)[(<|>|<=|>=|==|!=)(19)EXPS(20)]
 
-EXPS -> [+|-]T{(+|-|or)T}
+EXPS -> [+|-](14)T(15)(16){(+|-|or(12))T (17)}
 
-T -> F{(*|/|and)F}
+T -> F(11){(*|/|and (12))F(11)} (13)
 
-F -> "("EXP")" | id | const | not F | true | false
-   
+F -> "("EXP")"(9) | id(6) | const(7) | not F(10) | true(8) | false(8)
+
+====================================================================================
+
+	ESQUEMA DE TRADUÇÃO
+
+------FUNCAO TIPO -----------
+1 -> TIPO.tipo = tipo-inteiro
+2-> TIPO.tipo = tipo-byte
+3-> TIPO.tipo = tipo-string
+4-> TIPO.tipo = tipo-logico
+---------------------------
+	FUNCAO DV
+5-> id.tipo = TIPO.tipo
+	
+	FUNCAO F
+6-> F.tipo = id.tipo
+7-> F.tipo = const.tipo
+8-> F.tipo = tipo-logico
+9-> F.tipo = EXP.tipo
+	
+	FUNCAO T
+10-> if(F.tipo != tipo-logico) erro (tipos incompativeis)
+11-> F.tipo = f1.tipo
+12->auxiliarToken = lex
+	
+13-> if(auxiliarToken == "AND"){
+	if(F1.tipo != tipo-logico || F2.tipo != tipo-logico)
+		erro(tipos incompativeis)
+	else
+		T.tipo = tipo-logico
+      }else if (auxiliarToken == "*" || auxiliarToken == "/"){
+	  if(F1.tipo != tipo-byte || F1.tipo != tipo-inteiro || F2.tipo != tipo-byte || F2.tipo != tipo-inteiro)
+		erro(tipos incompativeis)
+	  else{
+		if(F1.tipo == tipo-logico || F1.tipo == tipo-string || F2.tipo == tipo-logico || F2.tipo == tipo-string)
+			erro(tipos incompativeis)
+		else{
+			if(auxiliarToken == /)
+				T.tipo = "tipo-inteiro"
+			else{
+				if(F1.tipo == "tipo-byte" && F2.tipo == "tipo-byte")
+					T.tipo = "tipo-byte"
+				else
+					T.tipo = "tipo-inteiro"
+			}
+		}
+	  }else{
+		T.tipo = F1.tipo
+	}
+
+		FUNCAO EXPS
+14-> if(lex == "+" || lex == "-")
+	auxiliarToken = "lex"
+15-> T.tipo = t1.tipo
+16-> if(auxiliarToken == "-"){
+		if(T1.tipo == "tipo-string" || T1.tipo = "tipo-logico" )
+			erro(tipos incompativeis)
+		else
+			T1.tipo = "tipo-inteiro"
+     }else if (auxiliarToken == "+"){
+		if(T1.tipo == "tipo-logico")
+			erro(tipos incompativeis)
+	}
+	
+17-> if(auxiliarToken == "OR"){
+	if(T1.tipo != tipo-logico || T2.tipo != tipo-logico)
+		erro(tipos incompativeis)
+	else{
+		EXPS.tipo = "tipo-logico"
+	}
+     }else if(auxiliarToken == "+" || auxiliarToken == "-"){
+	if(T1.tipo == "tipo-logico" || T2.tipo == "tipo-logico")
+		erro(tipos incompativeis)
+	  else{
+		if(auxiliarToken == "-"){
+			if((T1.tipo == "tipo-string" || T2.tipo == "tipo-string"))
+				erro(tipos incompativeis)
+			else
+				EXPS.tipo = "tipo-inteiro"
+		}else{
+			if(T1.tipo == "tipo-string" || T2.tipo == "tipo-string")
+				EXPS.tipo = "tipo-string"
+			else
+				EXPS.tipo = "tipo-inteiro"	
+		}
+	}else{
+		EXPS.tipo = T1.tipo
+	}
+
+		FUNCAO EXP
+18-> EXPS.tipo = exps1.tipo
+
+19-> if(lex == <OPERADOR-LOGICO> //ESCREVER PARA TODOS OS OPERADORES LOGICOS//)
+		auxiliarToken = "OPERADOR-LOGICO"
+
+20-> if(auxiliarToken == "OPERADOR-LOGICO"){
+		if(EXPS1.tipo != "tipo-logico" || EXPS2.tipo != "tipo-logico" )
+			erro(tipos incompativeis)
+		else
+			EXP.tipo = "tipo-logico"
+	}
