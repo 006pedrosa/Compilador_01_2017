@@ -18,9 +18,9 @@ COMANDO-> CA | CR | CT | CN | CL | CE
 
 DV -> TIPO id(5)Y [TERMINADO]
 
-DC -> const idY
+DC -> const id(25)Y
 
-CA -> id=EXP;
+CA -> id=EXP(26);
 
 Y -> =EXP(21)(22)V | (22)V [TERMINADO]
 
@@ -28,19 +28,19 @@ V-> ,(23)id(24)Y | ; [TERMINADO]
 
 TIPO -> integer(1) | byte(2) | string(3) | boolean(4) [TERMINADO]
 
-CR -> while'('EXP')' X
+CR -> while'('EXP')'(27) X
 
 X ->  COMANDO | begin {COMANDO} end
 
-CT -> if'('EXP')' then CT_A
+CT -> if'('EXP')'(27) then CT_A
 
 CT_A -> COMANDO [else COMANDO]| begin {COMANDO} end [else begin {COMANDO} end]
 
 CN -> ';'
 
-CL -> readln'('id')';
+CL -> readln'('id')'(28);
 
-CE -> write'('EXP{,EXP}')'; | writeln'('EXP{,EXP}')'; 
+CE -> write'('EXP(29){,EXP1(29)}')'; | writeln'('EXP(29){,EXP1(29)}')'; 
 
 EXP -> EXPS(18)[(<|>|<=|>=|==|!=)(19)EXPS1(20)] [TERMINADO]
 
@@ -174,9 +174,21 @@ F -> "("EXP")"(9) | id(6) | const(7) | not F(10) | true(8) | false(8) [TERMINADO
 
 22-> V.tipo = Y.tipo
 
-
-
 23-> id.tipo = V.tipo
 
 24-> Y.tipo = V.tipo
 
+25-> id.tipo = const.tipo
+     Y.tipo = id.tipo
+
+26-> if(id.tipo != EXP.tipo)
+	erro(tipos incompativeis)
+
+27-> if(EXP.tipo != "tipo-logico")
+	erro(tipos incompativeis)
+
+28-> if(id.tipo != const.tipo)
+	erro(tipos incompativeis)
+
+29-> if(EXP.tipo == "tipo-logico")
+	erro(tipos incompativeis)
