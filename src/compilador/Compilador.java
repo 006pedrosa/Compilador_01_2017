@@ -69,6 +69,10 @@ public class Compilador {
       hashClasse.put(token, classe);
    }
    
+   public static void setTipo(String token, String tipo){
+      hashTipo.put(token, tipo);
+   }
+   
    //Efetua uma busca na hashTipo pelo tipo desejado em função do token, retorna null se não encontrado
    public static String getTipo(String token){
        return hashTipo.get(token);
@@ -80,8 +84,8 @@ public class Compilador {
 
     public static void chamaTabela(){
       if(buscaHash(lex) == null && declaracao == 1){
-         if(Character.isDigit(lex.charAt(0)) || lex.charAt(0) == '\''){
-            setHash(lex, "const", "classe-const");
+         if(tipoId == "const"){
+            setHash(lex, "id", "classe-const");
          }else{
             setHash(lex, "id", "classe-var");
          }
@@ -93,6 +97,7 @@ public class Compilador {
 
    public static String analisadorLexico(String linhaAnalisador) throws IOException{
        String token_retorno = null;
+       String retornaToken = "";
        lex = "";
        if(linha == null){
            return "EOF";
@@ -122,7 +127,13 @@ public class Compilador {
                 return "EOF";
           }
        }
-       return buscaHash(token_retorno);
+       retornaToken = buscaHash(token_retorno);
+       if(retornaToken == null){
+           if((Character.isDigit(lex.charAt(0)) || lex.charAt(0) == '\'') || lex == "true" || lex == "false"){
+               retornaToken = "const";
+           }
+       }
+       return retornaToken;
    }
 
    public static String automatoLexico(String linha){
@@ -353,18 +364,46 @@ public class Compilador {
    //Metodo DC
    public static void DC() throws IOException{
        String id_tipo = "";
-       String auxLex = "";
+       String idLex = "";
+       String idConst = "";
        
+       tipoId = "const";
        declaracao = 1;
        casaToken("const");
        declaracao = 0;
        
+       idLex = lex;
        casaToken("id");
+      
+       casaToken("=");
        
-       auxLex = lex;
-       id_tipo = getTipo(auxLex);
-       Y(id_tipo);
+       idConst = lex;
+
+       id_tipo = VALOR();
+
+       setTipo(idLex, id_tipo);
+       
+       casaToken(";");
+       
    }
+   
+   public static String VALOR() throws IOException{
+       String VALOR_tipo = "";
+       
+       if(token_atual == "const"){
+          VALOR_tipo = verTipoConst(lex);
+          casaToken("const");
+       }else if(token_atual == "true"){
+           VALOR_tipo = "tipo-logico";
+           casaToken("true");
+       }else{
+           VALOR_tipo = "tipo-logico";
+           casaToken("false");
+       }
+       
+       return VALOR_tipo;
+   }
+   
    //Metodo TIPO
    public static String TIPO() throws IOException{
        String tipo_tipo = "";
@@ -773,6 +812,120 @@ public static void CA() throws IOException{
 
    //--------------------------------------------FIM DO ANALISADOR SINTATICO
 
+   
+   //-------------------------------------------VERIFICAR TIPO CONST
+   
+   public static boolean verInt(String constante){ 
+      boolean resp = false;
+      int val = 0;
+        
+      if(constante.charAt(0) == '-'){
+         if(constante.length() <= 6){
+            for(int x = 1; x < constante.length(); x++){
+               if(Character.isDigit(constante.charAt(x))){
+                  resp = true;
+               }else{
+                  resp = false;
+               }
+            }
+         }
+      } else {
+         if(constante.length() <= 5){
+            for(int x = 0; x < constante.length(); x++){
+               if(Character.isDigit(constante.charAt(x))){
+                  resp = true;
+               }else{
+                  resp = false;
+               }
+            }
+         }
+      }
+      if(resp){
+         val = Integer.parseInt(constante);
+         
+         if(val >= -32768 && val <= 32767){
+            resp = true;
+         } 
+      }
+         
+         
+      return resp;
+   }
+
+
+   public static boolean verByte(String constante){
+      boolean resp = false;
+      int val = 0;
+      
+      if(constante.length() >=1 && constante.length() <= 3){
+         for(int x = 0; x < constante.length(); x++){
+            if(Character.isDigit(constante.charAt(x))){
+               resp = true;
+            }else{
+               resp = false;
+               x = constante.length();
+            }
+         }
+      }
+      if(resp){
+         val = Integer.parseInt(constante);
+         
+         if(val >= 0 && val <= 255){
+            resp = true;
+         }else{
+            resp = false;
+         }
+      }
+      return resp;   
+   }
+
+
+   //verifica se e' hexadecimal
+   public static boolean verHexa(String constante){
+      boolean resp = false;
+      
+      if(constante.length() == 4){
+         if(constante.charAt(0) == '0' && constante.charAt(1) == 'h'){
+            if(Character.isDigit(constante.charAt(2))|| (constante.charAt(2) >= 'A'  && constante.charAt(2) <= 'F' )){
+               if(Character.isDigit(constante.charAt(3))|| (constante.charAt(3) >= 'A'  && constante.charAt(3) <= 'F' )){
+                  resp = true;
+               }else{
+                  resp = false;
+               } 
+            }
+         }
+      }
+      
+      return resp;
+   }
+
+
+   public static String verTipoConst(String constante){
+      String tipoConstante = "";
+      
+      if(constante.length() > 254){
+         System.out.println("Erro: Limite de memoria atingido");
+      } else {
+         if(constante.charAt(0) == '\'' && constante.charAt(constante.length()-1) == '\''){
+            tipoConstante = "tipo-string";
+         } else if(constante == "true" || constante == "false"){
+            tipoConstante = "tipo-logico";
+         } else if(verHexa(constante)){
+            tipoConstante = "tipo-byte";
+         } else if(verByte(constante)){
+            tipoConstante = "tipo-byte";
+         } else if(verInt(constante)){
+            tipoConstante = "tipo-inteiro";
+         }
+      } 
+      
+      return tipoConstante;
+   }
+   
+   //-------------------------------------------FIM DO VERIF TIPO CONST
+   
+   
+   
 
     //PROGRAMA PRINCIPAL
     public static void main(String[] args) throws FileNotFoundException, IOException {

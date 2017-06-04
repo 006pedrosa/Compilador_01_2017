@@ -18,7 +18,7 @@ COMANDO-> CA | CR | CT | CN | CL | CE
 
 DV -> TIPO id(5)Y [TERMINADO]
 
-DC -> const id(25)Y
+DC -> const id(25)=VALOR(31);
 
 CA -> id(30)=EXP(26);
 
@@ -49,6 +49,8 @@ EXPS -> [+|-](14)T(15)(16){(+|-|or(12))T (17)} [TERMINADO]
 T -> F(11){(*|/|and (12))F(11)} (13) [TERMINADO]
 
 F -> "("EXP")"(9) | id(6) | const(7) | not F(10) | true(8) | false(8) [TERMINADO]
+
+VALOR-> const(32) | true(33) | false(33)
 
 ====================================================================================
 
@@ -178,8 +180,7 @@ F -> "("EXP")"(9) | id(6) | const(7) | not F(10) | true(8) | false(8) [TERMINADO
 
 24-> Y.tipo = V.tipo
 
-25-> id.tipo = const.tipo
-     Y.tipo = id.tipo
+25-> auxiliarLex = id.lex
 
 26-> if(id.tipo != EXP.tipo)
 	erro(tipos incompativeis)
@@ -195,3 +196,9 @@ F -> "("EXP")"(9) | id(6) | const(7) | not F(10) | true(8) | false(8) [TERMINADO
 
 30->if(getHash == null)
 	erro(Identificador não declarado)
+
+31->id.tipo = EXP.tipo
+
+32-> VALOR.tipo = const.tipo
+
+33-> VALOR.tipo = "tipo-logico"
