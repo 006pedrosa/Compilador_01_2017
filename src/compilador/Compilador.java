@@ -21,6 +21,7 @@ public class Compilador {
     public static Map<String, String> tS = new HashMap<String, String>();
     public static Map<String, String> hashTipo = new HashMap<String, String>();
     public static Map<String, String> hashClasse = new HashMap<String, String>();
+    
 
     //-----------------------------------------------ANALISADOR LEXICO----------------------
 
@@ -66,6 +67,11 @@ public class Compilador {
       tS.put(token, lexema);
       hashTipo.put(token, tipoId);
       hashClasse.put(token, classe);
+   }
+   
+   //Efetua uma busca na hashTipo pelo tipo desejado em função do token, retorna null se não encontrado
+   public static String getTipo(String token){
+       return hashTipo.get(token);
    }
    //Efetua uma busca na hash pelo token desejado, retorna null se não encontrado
    public static String buscaHash(String token){
@@ -307,7 +313,7 @@ public class Compilador {
    public static void casaToken(String token_esperado) throws IOException{
        if(token_atual == token_esperado){
            token_atual = analisadorLexico(linha);
-           System.out.println(token_atual);
+           //System.out.println(token_atual);
        }else{
             System.out.println("ERRO NA LINHA "+ erroLinha + " Token recebido: "+ token_atual + " TOKEN ESPERADO: "+token_esperado);
             System.exit(0);
@@ -334,18 +340,25 @@ public class Compilador {
    }
    //Metodo DV
    public static void DV() throws IOException{
-       TIPO();
+       String id_tipo = TIPO();
        casaToken("id");
-       Y();
+       Y(id_tipo);
    }
    //Metodo DC
    public static void DC() throws IOException{
+       String id_tipo = "";
+       String auxLex = "";
+       
        casaToken("const");
        casaToken("id");
-       Y();
+       
+       auxLex = lex;
+       id_tipo = getTipo(auxLex);
+       Y(id_tipo);
    }
    //Metodo TIPO
-   public static void TIPO() throws IOException{
+   public static String TIPO() throws IOException{
+       String tipo_tipo = "";
        if(token_atual == "integer"){
            tipoId = "tipo-inteiro";
            casaToken("integer");
@@ -359,26 +372,39 @@ public class Compilador {
            tipoId = "tipo-logico";
            casaToken("boolean");
        }
+       tipo_tipo = tipoId; //herda o tipo
+       return tipo_tipo;
    }
    //Metodo Y
-   public static void Y() throws IOException{
+   public static void Y(String Y_tipo) throws IOException{
+       String EXP_tipo = "";
        if(token_atual == "="){
            casaToken("=");
-           EXP();
-           V();
+           EXP_tipo = EXP();
+           
+           //Acao semantica: 21
+           if(EXP_tipo != Y_tipo){
+               //LEMBRAR ERRO criar um metodo para imprimir os erros e parar a execucao (exit por exemplo)
+               System.out.println("Erro: Tipo incompativel - Linha: "+erroLinha);
+           }
+           
+           //Acao semantica: 22
+           V(Y_tipo);
        }else{
-           V();
+           //Acao semantica: 22
+           V(Y_tipo);
        }
    }
 
    //Metodo V
-   public static void V() throws IOException{
+   public static void V(String V_tipo) throws IOException{
        if(token_atual == ";"){
            casaToken(";");
        }else{
            casaToken(",");
            casaToken("id");
-           Y();
+           //Acao semantica: 24
+           Y(V_tipo);
        }
    }
    //Metodo COMANDO
@@ -401,17 +427,36 @@ public class Compilador {
            }
    }
    //Metodo CA
-   public static void CA() throws IOException{
-		casaToken("id");
-		casaToken("=");
-		EXP();
-		casaToken(";");
+public static void CA() throws IOException{
+            String EXP_tipo = "";
+            String id_tipo = "";
+            String auxLex = lex;
+            
+            casaToken("id");
+            id_tipo = getTipo(auxLex); 
+            if(id_tipo == null ){
+                System.out.println("ID NÃO DECLARADO, LINHA: "+ erroLinha);
+                System.exit(0);
+            }
+            casaToken("=");
+            EXP_tipo = EXP();
+            
+            if(id_tipo != EXP_tipo){
+                System.out.println("Erro: Tipo incompativel - Linha: "+erroLinha);
+            }
+            casaToken(";");
    }
    //Metodo CR
    public static void CR() throws IOException{
-	   casaToken("while");
+	   String CR_tipo = "";
+           casaToken("while");
 	   casaToken("(");
-	   EXP();
+	   
+           CR_tipo = EXP();
+           
+           if(CR_tipo != "tipo-logico"){
+               System.out.println("Erro: Tipo incompativel - Linha: "+erroLinha);
+           }
 	   casaToken(")");
 	   X();
 
@@ -430,9 +475,10 @@ public class Compilador {
    }
    //Metodo CT
    public static void CT() throws IOException{
+                String aux = "";
 		casaToken("if");
 		casaToken("(");
-		EXP();
+		aux = EXP();
 		casaToken(")");
 		casaToken("then");
 		CT_A();
@@ -463,122 +509,250 @@ public class Compilador {
    }
    //Metodo CN
    public static void CN() throws IOException{
-	   casaToken(";");
+        casaToken(";");
    }
    //Metodo CL
    public static void CL() throws IOException{
-	   casaToken("readln");
-	   casaToken("(");
-	   casaToken("id");
-	   casaToken(")");
-	   casaToken(";");
-   }
+        String auxLex = "";
+        String id_tipo = "";
+        
+        casaToken("readln");
+        casaToken("(");
+         
+        auxLex = lex;
+        casaToken("id");
+        id_tipo = getTipo(lex);
+        
+        //ACAO SEMANTICA 30
+        if(id_tipo == null){
+                System.out.println("ID NÃO DECLARADO, LINHA: "+ erroLinha);
+                System.exit(0);
+         }
+         casaToken(")");
+         
+         //ACAO SEMANTICA 28
+         
+         casaToken(";");
+    }
    //Metodo CE
    public static void CE() throws IOException{
+           String CE_tipo = "";
 	   if(token_atual == "write"){
 		   casaToken("write");
 		   casaToken("(");
-		   EXP();
+		   CE_tipo = EXP();
+                   if(CE_tipo == "tipo-logico"){
+                        System.out.println("Erro: Tipo incompativel - Linha: "+erroLinha);
+                   }
 		   while(token_atual != ")"){
-			   casaToken(",");
-			   EXP();
+			casaToken(",");
+			CE_tipo = EXP();
+                        if(CE_tipo == "tipo-logico"){
+                            System.out.println("Erro: Tipo incompativel - Linha: "+erroLinha);
+                        }
 		   }
 		   casaToken(")");
 		   casaToken(";");
 	   }else{
 		   casaToken("writeln");
 		   casaToken("(");
-		   EXP();
+		   CE_tipo = EXP();
+                   if(CE_tipo == "tipo-logico"){
+                        System.out.println("Erro: Tipo incompativel - Linha: "+erroLinha);
+                    }
 		   while(token_atual != ")"){
-			   casaToken(",");
-			   EXP();
+                        casaToken(",");
+                        CE_tipo = EXP();
+                        if(CE_tipo == "tipo-logico"){
+                            System.out.println("Erro: Tipo incompativel - Linha: "+erroLinha);
+                        }
 		   }
 		   casaToken(")");
 		   casaToken(";");
 	   }
    }
-   //Metodp EXP
-   public static void EXP()throws IOException{
-	   EXPS();
+   //Metodo EXP
+   public static String EXP()throws IOException{
+	   String EXP_tipo = ""; //recebe o tipo retornado pelo EXPS
+           String EXPS1_tipo = "";
+           String auxToken = "";
+           EXP_tipo = EXPS();
+           auxToken = token_atual;
 	   if(token_atual =="<"){
 		   casaToken("<");
-		   EXPS();
+		   EXPS1_tipo = EXPS();
 	   }else if(token_atual == ">"){
 		   casaToken(">");
-		   EXPS();
+		   EXPS1_tipo = EXPS();
 	   }else if(token_atual == "<="){
 		   casaToken("<=");
-		   EXPS();
+		   EXPS1_tipo = EXPS();
 	   }else if(token_atual == ">="){
 		   casaToken(">=");
-		   EXPS();
+		   EXPS1_tipo = EXPS();
 	   }else if(token_atual == "=="){
 		   casaToken("==");
-		   EXPS();
+		   EXPS1_tipo = EXPS();
 	   }else if(token_atual =="!="){
 		   casaToken("!=");
-		   EXPS();
+		   EXPS1_tipo = EXPS();
 	   }
+           
+           //semantico
+           if(auxToken == "=="){
+               if(EXP_tipo != EXPS1_tipo){
+                   if(EXP_tipo == "tipo-string" || EXP_tipo == "tipo-logico" || EXPS1_tipo == "tipo-string" || EXPS1_tipo == "tipo-logico"){
+                       System.out.println("Erro: Tipos incompativeis - Linha: "+erroLinha);
+                   } else {
+                       EXP_tipo = "tipo-logico";
+                   }
+               } else {
+                   EXP_tipo = "tipo-logico";
+               }
+           } else {
+               if(EXP_tipo == "tipo-string" || EXPS1_tipo == "tipo-string"){
+                   System.out.println("Erro: Tipos incompativeis - Linha: "+erroLinha);                  
+               } else {
+                   EXP_tipo = "tipo-logico";
+               }
+           }
+           return EXP_tipo;
 	}
    //Metodo EXPS
-   public static void EXPS()throws IOException{
+   public static String EXPS()throws IOException{
+           String EXPS_tipo = "";
+           String T1_tipo = "";
+           String auxToken = "";
 	   if(token_atual == "+"){
 		   casaToken("+");
-		   T();
+		   EXPS_tipo = T();
+                   if(EXPS_tipo == "tipo-string" || EXPS_tipo == "tipo-logico"){
+                       System.out.println("Erro: Tipos incompativeis - Linhas: "+erroLinha);
+                   } else {
+                       EXPS_tipo = "tipo-inteiro";
+                   }
 	   }else if(token_atual == "-"){
 		   casaToken("-");
-		   T();
+		   EXPS_tipo = T();
+                   if(EXPS_tipo == "tipo-string" || EXPS_tipo == "tipo-logico"){
+                       System.out.println("Erro: Tipos incompativeis - Linhas: "+erroLinha);
+                   } else {
+                       EXPS_tipo = "tipo-inteiro";
+                   }
 	   }else{
-		   T();
+		   EXPS_tipo = T();
 		   while(token_atual == "+" || token_atual == "-" || token_atual == "or"){
+                           auxToken = token_atual;
 			   if(token_atual == "+"){
 				   casaToken("+");
-				   T();
+				   T1_tipo = T();
 			   }else if(token_atual == "-"){
 				   casaToken("-");
-				   T();
+				   T1_tipo = T();
 			   }else if(token_atual == "or"){
 				   casaToken("or");
-				   T();
+				   T1_tipo = T();
 			   }
+                           if(auxToken == "or"){
+                               if(EXPS_tipo != "tipo-logico" || T1_tipo != "tipo-logico"){
+                                    System.out.println("Erro: Tipos incompativeis - Linhas: "+erroLinha);
+                               }
+                           }else if(auxToken == "+" || auxToken == "-"){
+                               if(EXPS_tipo == "tipo-logico" || T1_tipo == "tipo-logico"){
+                                    System.out.println("Erro: Tipos incompativeis - Linhas: "+erroLinha);
+                               }else{
+                                    if(auxToken == "-"){
+                                        if(EXPS_tipo == "tipo-string" || T1_tipo == "tipo-logico"){
+                                            System.out.println("Erro: Tipos incompativeis - Linhas: "+erroLinha);
+                                        } else {
+                                            EXPS_tipo = "tipo-inteiro";
+                                        }
+                                    } else {
+                                        if(EXPS_tipo == "tipo-string" || T1_tipo == "tipo-string"){
+                                            EXPS_tipo = "tipo-string";
+                                        } else {
+                                            EXPS_tipo = "tipo-inteiro";
+                                        }
+                                    }
+                               }
+                           }
 		   }//fim while
+                   
 	   }
-
+           return EXPS_tipo;
    }
    //Metodo T
-   public static void T() throws IOException{
-	   F();
+   public static String T() throws IOException{
+	   String T_tipo = "";
+           String F1_tipo = "";
+           String auxToken = "";
+           T_tipo = F();
 	   while(token_atual == "*" || token_atual == "/" || token_atual == "and"){
+                   auxToken = token_atual;
 		   if(token_atual == "*"){
-			   casaToken("*");
-			   F();
+                           casaToken("*");
+			   F1_tipo = F();
 		   }else if(token_atual == "/"){
 			   casaToken("/");
-			   F();
+			   F1_tipo = F();
 		   }else if(token_atual == "and"){
 			   casaToken("and");
-			   F();
+			   F1_tipo = F();
 		   }
+                   //Semantico
+                   if(auxToken == "and"){
+                       if(T_tipo != "tipo-logico" || F1_tipo != "tipo-logico"){
+                           System.out.println("Erro: Tipos incompativeis - Linha: "+erroLinha);
+                       }
+                   }else if(auxToken == "*" || auxToken == "/"){
+                       if(T_tipo != "tipo-byte" || T_tipo != "tipo-inteiro" || F1_tipo != "tipo-byte" || F1_tipo != "tipo-inteiro"){
+                           System.out.println("Erro: Tipos incompativeis - Linha: "+erroLinha);
+                       } else {
+                           if(auxToken == "/"){
+                               T_tipo = "tipo-inteiro";
+                           } else {
+                               if(T_tipo != "tipo-byte" || F1_tipo != "tipo-byte"){
+                                   T_tipo = "tipo-inteiro";
+                               }
+                           }
+                       }   
+                   }
 	   }//fim while
+           return T_tipo;
    }
    //Metodo F
-   public static void F() throws IOException{
-	   if(token_atual == "("){
+   public static String F() throws IOException{
+           String F_tipo = "";//Variavel que guarda o retorno dos tipos
+           String F1_tipo = "";
+	   String auxLex = "";
+           if(token_atual == "("){
 		   casaToken("(");
-		   EXP();
+		   F_tipo = EXP();
 		   casaToken(")");
 	   }else if(token_atual == "id"){
+                   auxLex = lex;
 		   casaToken("id");
+                   F_tipo = getTipo(auxLex);//procura na tabela de simbolos o tipo do id
 	   }else if(token_atual == "const"){
+                   auxLex = lex;
   		   casaToken("const");
+                   F_tipo = getTipo(auxLex);
 	   }else if(token_atual == "not"){
 		   casaToken("not");
-		   F();
+		   F1_tipo = F();
+                   if(F1_tipo != "tipo-logico"){
+                       System.out.println("Erro: Tipo incompativel - Linha: "+erroLinha);
+                   }else {
+                       F_tipo = F1_tipo;
+                   }
 	   }else if(token_atual == "true"){
 		   casaToken("true");
+                   F_tipo = "tipo-logico";
 	   }else if (token_atual == "false"){
 		   casaToken("false");
+                   F_tipo = "tipo-logico";
 	   }
+           return F_tipo;
    }
 
    //--------------------------------------------FIM DO ANALISADOR SINTATICO

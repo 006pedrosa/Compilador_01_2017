@@ -62,7 +62,7 @@ F -> "("EXP")"(9) | id(6) | const(7) | not F(10) | true(8) | false(8) [TERMINADO
 --------------------------------------------------------------------------
 				FUNCAO DV
 5-> id.tipo = TIPO.tipo;
-    Y.tipo = id.tipo;
+    Y.tipo = id.tipo; (CODIGO FALTANDO)
 ==========================================================================
 				FUNCAO F
 6-> F.tipo = id.tipo
