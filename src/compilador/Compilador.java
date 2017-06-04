@@ -17,7 +17,7 @@ public class Compilador {
     public static BufferedReader buffRead;
     public static String path, linha, token_atual, lex, tipoId;
     //public static AnalisadorLexico analisadorLexico = new AnalisadorLexico();
-    public static int erroLinha, posLinha;
+    public static int erroLinha, posLinha, declaracao;
     public static Map<String, String> tS = new HashMap<String, String>();
     public static Map<String, String> hashTipo = new HashMap<String, String>();
     public static Map<String, String> hashClasse = new HashMap<String, String>();
@@ -79,13 +79,13 @@ public class Compilador {
    }
 
     public static void chamaTabela(){
-      if(buscaHash(lex) == null){
+      if(buscaHash(lex) == null && declaracao == 1){
          if(Character.isDigit(lex.charAt(0)) || lex.charAt(0) == '\''){
             setHash(lex, "const", "classe-const");
          }else{
             setHash(lex, "id", "classe-var");
          }
-       }else if (buscaHash(lex) == "id" || buscaHash(lex) == "const"){
+       }else if (buscaHash(lex) == "id" && declaracao == 1){
           System.out.println("identificador já declarado "+ lex);
           System.exit(0);
       }
@@ -159,6 +159,9 @@ public class Compilador {
                lex += linha.charAt(i);
                //i--;
                estado = 11;
+            }else if(linha.charAt(i) != ' ' && linha.charAt(i) != '\t'){
+                System.out.println("ERRO NA LINHA "+ erroLinha + " CARACACTERE: " + linha.charAt(i) + " NAO ESPERADO");
+                System.exit(0);
             }
             break;
          case 1:
@@ -231,7 +234,7 @@ public class Compilador {
                  estado = 9;
              }else{
                  if(i == linha.length()-1){
-                    System.out.println("ERRO NA LINHA "+ erroLinha + " Token recebido: "+ token_atual);
+                    System.out.println("ERRO NA LINHA "+ erroLinha + " COMENTARIO NAO FINALIZADO");
                     System.exit(0);
                  }else{
                      estado = 8;
@@ -312,7 +315,7 @@ public class Compilador {
    //Metodo casaToken
    public static void casaToken(String token_esperado) throws IOException{
        if(token_atual == token_esperado){
-           token_atual = analisadorLexico(linha);
+            token_atual = analisadorLexico(linha);
            //System.out.println(token_atual);
        }else{
             System.out.println("ERRO NA LINHA "+ erroLinha + " Token recebido: "+ token_atual + " TOKEN ESPERADO: "+token_esperado);
@@ -334,8 +337,11 @@ public class Compilador {
    public static void DECLARACAO() throws IOException{
        if(token_atual == "const"){
            DC();
-       }else{
+       }else if(token_atual == "integer" || token_atual == "byte" || token_atual == "string" || token_atual == "boolean"){
            DV();
+       }else{
+           System.out.println("MAIN ESPERADO, ERRO LINHA: "+ erroLinha);
+           System.exit(0);
        }
    }
    //Metodo DV
@@ -349,7 +355,10 @@ public class Compilador {
        String id_tipo = "";
        String auxLex = "";
        
+       declaracao = 1;
        casaToken("const");
+       declaracao = 0;
+       
        casaToken("id");
        
        auxLex = lex;
@@ -359,6 +368,7 @@ public class Compilador {
    //Metodo TIPO
    public static String TIPO() throws IOException{
        String tipo_tipo = "";
+       declaracao = 1;
        if(token_atual == "integer"){
            tipoId = "tipo-inteiro";
            casaToken("integer");
@@ -373,6 +383,7 @@ public class Compilador {
            casaToken("boolean");
        }
        tipo_tipo = tipoId; //herda o tipo
+       declaracao = 0;
        return tipo_tipo;
    }
    //Metodo Y
@@ -409,7 +420,7 @@ public class Compilador {
    }
    //Metodo COMANDO
    public static void COMANDO() throws IOException{
-	   if(token_atual == "id"){
+	   if(token_atual == "id" || token_atual == null){
 		   CA();
 	   }else if(token_atual == "while"){
 		   CR();
@@ -432,17 +443,18 @@ public static void CA() throws IOException{
             String id_tipo = "";
             String auxLex = lex;
             
-            casaToken("id");
-            id_tipo = getTipo(auxLex); 
-            if(id_tipo == null ){
-                System.out.println("ID NÃO DECLARADO, LINHA: "+ erroLinha);
+            if(buscaHash(lex) == null){
+                System.out.println("ID " + lex + " NÃO DECLARADO, LINHA: "+ erroLinha);
                 System.exit(0);
             }
+            
+            casaToken("id");
+            id_tipo = getTipo(auxLex); 
             casaToken("=");
             EXP_tipo = EXP();
             
             if(id_tipo != EXP_tipo){
-                System.out.println("Erro: Tipo incompativel - Linha: "+erroLinha);
+                System.out.println("Erro: Tipo incompativel - Linha: "+erroLinha+ " tipos comparados: " + id_tipo + " e " + EXP_tipo);
             }
             casaToken(";");
    }
@@ -475,10 +487,14 @@ public static void CA() throws IOException{
    }
    //Metodo CT
    public static void CT() throws IOException{
-                String aux = "";
+                String CT_tipo = "";
 		casaToken("if");
 		casaToken("(");
-		aux = EXP();
+		CT_tipo = EXP();
+                
+                if(CT_tipo != "tipo-logico"){
+                    System.out.println("Erro: Tipo incompativel - Linha: "+erroLinha);
+                }
 		casaToken(")");
 		casaToken("then");
 		CT_A();
@@ -609,7 +625,7 @@ public static void CA() throws IOException{
                } else {
                    EXP_tipo = "tipo-logico";
                }
-           } else {
+           }else if(auxToken == "<" || auxToken == ">" || auxToken == "<=" || auxToken == ">=" || auxToken == "!="){
                if(EXP_tipo == "tipo-string" || EXPS1_tipo == "tipo-string"){
                    System.out.println("Erro: Tipos incompativeis - Linha: "+erroLinha);                  
                } else {

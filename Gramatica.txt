@@ -1,4 +1,4 @@
-﻿=============================DEFINIÇÕES===========================
+﻿string=============================DEFINIÇÕES===========================
 DV - Declaração de Variável
 DC - Declaração de COnstantes
 CA - Comando de Atribuição
@@ -20,7 +20,7 @@ DV -> TIPO id(5)Y [TERMINADO]
 
 DC -> const id(25)Y
 
-CA -> id=EXP(26);
+CA -> id(30)=EXP(26);
 
 Y -> =EXP(21)(22)V | (22)V [TERMINADO]
 
@@ -38,7 +38,7 @@ CT_A -> COMANDO [else COMANDO]| begin {COMANDO} end [else begin {COMANDO} end]
 
 CN -> ';'
 
-CL -> readln'('id')'(28);
+CL -> readln'('id'(30))'(28);
 
 CE -> write'('EXP(29){,EXP1(29)}')'; | writeln'('EXP(29){,EXP1(29)}')'; 
 
@@ -154,7 +154,7 @@ F -> "("EXP")"(9) | id(6) | const(7) | not F(10) | true(8) | false(8) [TERMINADO
 				EXP.tipo = "tipo-logico"
 		else
 				EXP.tipo = "tipo-logico"
-    else{
+    else if(auxiliarToken == "<" || auxiliarToken = ">" || auxiliarToken == "<=" || auxiliarToken == ">=" || auxiliarToken == "!="){
 	if(EXP.tipo == "tipo-string" || EXPS1.tipo == "tipo-string")
 		erro(tipos incompativeis)
 	else
@@ -192,3 +192,6 @@ F -> "("EXP")"(9) | id(6) | const(7) | not F(10) | true(8) | false(8) [TERMINADO
 
 29-> if(EXP.tipo == "tipo-logico")
 	erro(tipos incompativeis)
+
+30->if(getHash == null)
+	erro(Identificador não declarado)
