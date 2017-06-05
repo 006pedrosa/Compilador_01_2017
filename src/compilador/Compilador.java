@@ -434,8 +434,9 @@ public class Compilador {
            
            //Acao semantica: 21
            if(EXP_tipo != Y_tipo){
-               //LEMBRAR ERRO criar um metodo para imprimir os erros e parar a execucao (exit por exemplo)
-               System.out.println("Erro: Tipo incompativel - Linha: "+erroLinha);
+               if(EXP_tipo == "tipo-string" || EXP_tipo == "tipo-logico" || Y_tipo == "tipo-string" || Y_tipo == "tipo-logico"){
+                    System.out.println("Erro: Tipo incompativel - Linha: "+erroLinha);
+               }
            }
            
            //Acao semantica: 22
@@ -790,8 +791,8 @@ public static void CA() throws IOException{
                    F_tipo = getTipo(auxLex);//procura na tabela de simbolos o tipo do id
 	   }else if(token_atual == "const"){
                    auxLex = lex;
-  		   casaToken("const");
-                   F_tipo = getTipo(auxLex);
+  		   F_tipo = verTipoConst(lex);
+                   casaToken("const");
 	   }else if(token_atual == "not"){
 		   casaToken("not");
 		   F1_tipo = F();
