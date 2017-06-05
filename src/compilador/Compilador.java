@@ -207,7 +207,11 @@ public class Compilador {
          case 4:
              if(Character.isDigit(linha.charAt(i))){
                lex += linha.charAt(i);
-               estado = 4;
+               if(i == linha.length()-1){
+                   estado = 2;
+               }else{
+                    estado = 4;
+               }
             }else{
                i--;
                estado = 2;
@@ -276,6 +280,7 @@ public class Compilador {
              if(linha.charAt(i) == '\''){
                  lex += linha.charAt(i);
                  estado = 12;
+                 
              }else{
                  if(i == linha.length()-1){
                     estado = 2;
@@ -436,6 +441,7 @@ public class Compilador {
            if(EXP_tipo != Y_tipo){
                if(EXP_tipo == "tipo-string" || EXP_tipo == "tipo-logico" || Y_tipo == "tipo-string" || Y_tipo == "tipo-logico"){
                     System.out.println("Erro: Tipo incompativel - Linha: "+erroLinha);
+                    System.exit(0);
                }
            }
            
@@ -451,11 +457,13 @@ public class Compilador {
    public static void V(String V_tipo) throws IOException{
        if(token_atual == ";"){
            casaToken(";");
-       }else{
+       }else if (token_atual == ","){
            casaToken(",");
            casaToken("id");
            //Acao semantica: 24
            Y(V_tipo);
+       }else{
+           casaToken(";");
        }
    }
    //Metodo COMANDO
@@ -495,6 +503,7 @@ public static void CA() throws IOException{
             
             if(id_tipo != EXP_tipo){
                 System.out.println("Erro: Tipo incompativel - Linha: "+erroLinha+ " tipos comparados: " + id_tipo + " e " + EXP_tipo);
+                System.exit(0);
             }
             casaToken(";");
    }
@@ -508,6 +517,7 @@ public static void CA() throws IOException{
            
            if(CR_tipo != "tipo-logico"){
                System.out.println("Erro: Tipo incompativel - Linha: "+erroLinha);
+               System.exit(0);
            }
 	   casaToken(")");
 	   X();
@@ -599,12 +609,14 @@ public static void CA() throws IOException{
 		   CE_tipo = EXP();
                    if(CE_tipo == "tipo-logico"){
                         System.out.println("Erro: Tipo incompativel - Linha: "+erroLinha);
+                        System.exit(0);
                    }
 		   while(token_atual != ")"){
 			casaToken(",");
 			CE_tipo = EXP();
                         if(CE_tipo == "tipo-logico"){
                             System.out.println("Erro: Tipo incompativel - Linha: "+erroLinha);
+                            System.exit(0);
                         }
 		   }
 		   casaToken(")");
@@ -615,12 +627,14 @@ public static void CA() throws IOException{
 		   CE_tipo = EXP();
                    if(CE_tipo == "tipo-logico"){
                         System.out.println("Erro: Tipo incompativel - Linha: "+erroLinha);
+                        System.exit(0);
                     }
 		   while(token_atual != ")"){
                         casaToken(",");
                         CE_tipo = EXP();
                         if(CE_tipo == "tipo-logico"){
                             System.out.println("Erro: Tipo incompativel - Linha: "+erroLinha);
+                            System.exit(0);
                         }
 		   }
 		   casaToken(")");
@@ -659,6 +673,7 @@ public static void CA() throws IOException{
                if(EXP_tipo != EXPS1_tipo){
                    if(EXP_tipo == "tipo-string" || EXP_tipo == "tipo-logico" || EXPS1_tipo == "tipo-string" || EXPS1_tipo == "tipo-logico"){
                        System.out.println("Erro: Tipos incompativeis - Linha: "+erroLinha);
+                       System.exit(0);
                    } else {
                        EXP_tipo = "tipo-logico";
                    }
@@ -667,7 +682,8 @@ public static void CA() throws IOException{
                }
            }else if(auxToken == "<" || auxToken == ">" || auxToken == "<=" || auxToken == ">=" || auxToken == "!="){
                if(EXP_tipo == "tipo-string" || EXPS1_tipo == "tipo-string"){
-                   System.out.println("Erro: Tipos incompativeis - Linha: "+erroLinha);                  
+                   System.out.println("Erro: Tipos incompativeis - Linha: "+erroLinha);  
+                   System.exit(0);
                } else {
                    EXP_tipo = "tipo-logico";
                }
@@ -684,6 +700,7 @@ public static void CA() throws IOException{
 		   EXPS_tipo = T();
                    if(EXPS_tipo == "tipo-string" || EXPS_tipo == "tipo-logico"){
                        System.out.println("Erro: Tipos incompativeis - Linhas: "+erroLinha);
+                       System.exit(0);
                    } else {
                        EXPS_tipo = "tipo-inteiro";
                    }
@@ -692,6 +709,7 @@ public static void CA() throws IOException{
 		   EXPS_tipo = T();
                    if(EXPS_tipo == "tipo-string" || EXPS_tipo == "tipo-logico"){
                        System.out.println("Erro: Tipos incompativeis - Linhas: "+erroLinha);
+                       System.exit(0);
                    } else {
                        EXPS_tipo = "tipo-inteiro";
                    }
@@ -712,14 +730,17 @@ public static void CA() throws IOException{
                            if(auxToken == "or"){
                                if(EXPS_tipo != "tipo-logico" || T1_tipo != "tipo-logico"){
                                     System.out.println("Erro: Tipos incompativeis - Linhas: "+erroLinha);
+                                    System.exit(0);
                                }
                            }else if(auxToken == "+" || auxToken == "-"){
                                if(EXPS_tipo == "tipo-logico" || T1_tipo == "tipo-logico"){
                                     System.out.println("Erro: Tipos incompativeis - Linhas: "+erroLinha);
+                                    System.exit(0);
                                }else{
                                     if(auxToken == "-"){
                                         if(EXPS_tipo == "tipo-string" || T1_tipo == "tipo-logico"){
                                             System.out.println("Erro: Tipos incompativeis - Linhas: "+erroLinha);
+                                            System.exit(0);
                                         } else {
                                             EXPS_tipo = "tipo-inteiro";
                                         }
@@ -759,10 +780,12 @@ public static void CA() throws IOException{
                    if(auxToken == "and"){
                        if(T_tipo != "tipo-logico" || F1_tipo != "tipo-logico"){
                            System.out.println("Erro: Tipos incompativeis - Linha: "+erroLinha);
+                           System.exit(0);
                        }
                    }else if(auxToken == "*" || auxToken == "/"){
                        if(T_tipo != "tipo-byte" || T_tipo != "tipo-inteiro" || F1_tipo != "tipo-byte" || F1_tipo != "tipo-inteiro"){
                            System.out.println("Erro: Tipos incompativeis - Linha: "+erroLinha);
+                           System.exit(0);
                        } else {
                            if(auxToken == "/"){
                                T_tipo = "tipo-inteiro";
@@ -798,6 +821,7 @@ public static void CA() throws IOException{
 		   F1_tipo = F();
                    if(F1_tipo != "tipo-logico"){
                        System.out.println("Erro: Tipo incompativel - Linha: "+erroLinha);
+                       System.exit(0);
                    }else {
                        F_tipo = F1_tipo;
                    }
