@@ -90,7 +90,7 @@ public class Compilador {
             setHash(lex, "id", "classe-var");
          }
        }else if (buscaHash(lex) == "id" && declaracao == 1){
-          System.out.println("identificador já declarado "+ lex);
+          System.out.println("IDENTIFICADOR '" + lex + "' JÁ DECLARADO");
           System.exit(0);
       }
    }
@@ -576,7 +576,7 @@ public static void CA() throws IOException{
          
         auxLex = lex;
         casaToken("id");
-        id_tipo = getTipo(lex);
+        id_tipo = getTipo(auxLex);
         
         //ACAO SEMANTICA 30
         if(id_tipo == null){
