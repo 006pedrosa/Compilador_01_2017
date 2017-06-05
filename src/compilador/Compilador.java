@@ -170,7 +170,11 @@ public class Compilador {
                lex += linha.charAt(i);
                //i--;
                estado = 11;
-            }else if(linha.charAt(i) != ' ' && linha.charAt(i) != '\t'){
+            }else if(linha.charAt(i) == ' ' || linha.charAt(i) == '\t'){
+               if(i >= linha.length()-1){
+                   return null;
+               }
+            }else{
                 System.out.println("ERRO NA LINHA "+ erroLinha + " CARACACTERE: " + linha.charAt(i) + " NAO ESPERADO");
                 System.exit(0);
             }
@@ -458,7 +462,11 @@ public class Compilador {
        if(token_atual == ";"){
            casaToken(";");
        }else if (token_atual == ","){
+           
+           declaracao = 1;
            casaToken(",");
+           declaracao = 0;
+           
            casaToken("id");
            //Acao semantica: 24
            Y(V_tipo);
@@ -502,8 +510,10 @@ public static void CA() throws IOException{
             EXP_tipo = EXP();
             
             if(id_tipo != EXP_tipo){
-                System.out.println("Erro: Tipo incompativel - Linha: "+erroLinha+ " tipos comparados: " + id_tipo + " e " + EXP_tipo);
-                System.exit(0);
+                if(id_tipo == "tipo-string" || id_tipo == "tipo-logico" || EXP_tipo == "tipo-string" || EXP_tipo == "tipo-logico"){
+                        System.out.println("Erro: Tipo incompativel - Linha: "+erroLinha+ " tipos comparados: " + id_tipo + " e " + EXP_tipo);
+                        System.exit(0);
+                }
             }
             casaToken(";");
    }
@@ -516,7 +526,7 @@ public static void CA() throws IOException{
            CR_tipo = EXP();
            
            if(CR_tipo != "tipo-logico"){
-               System.out.println("Erro: Tipo incompativel - Linha: "+erroLinha);
+               System.out.println("Erro: Tipo incompativel - Linha: "+erroLinha+ " tipos esperado:  tipo-logico - tipo encontrado : " + CR_tipo);
                System.exit(0);
            }
 	   casaToken(")");

@@ -48,7 +48,7 @@ EXPS -> [+|-](14)T(15)(16){(+|-|or(12))T (17)} [TERMINADO]
 
 T -> F(11){(*|/|and (12))F(11)} (13) [TERMINADO]
 
-F -> "("EXP")"(9) | id(6) | const(7) | not F(10) | true(8) | false(8) [TERMINADO]
+F -> "("EXP")"(9) | id(6) | const(32) | not F(10) | true(8) | false(8) [TERMINADO]
 
 VALOR-> const(32) | true(33) | false(33)
 
@@ -171,7 +171,9 @@ VALOR-> const(32) | true(33) | false(33)
 =================================================================
 		                  FUNÇÃO Y
 21-> if(Y.tipo != EXP.tipo){
-	erro(tipos incompativeis)
+	if(EXP.tipo == "tipo-string" || EXP.tipo == "tipo-logico" || Y.tipo == "tipo-string" || Y.tipo == "tipo-logico")
+		erro(tipos incompativeis)
+	else{}
 }
 
 22-> V.tipo = Y.tipo
@@ -183,7 +185,9 @@ VALOR-> const(32) | true(33) | false(33)
 25-> auxiliarLex = id.lex
 
 26-> if(id.tipo != EXP.tipo)
-	erro(tipos incompativeis)
+	if(EXP.tipo == "tipo-string" || EXP.tipo == "tipo-logico" || id.tipo == "tipo-string" || id.tipo == "tipo-logico")
+		erro(tipos incompativeis)
+	else{}
 
 27-> if(EXP.tipo != "tipo-logico")
 	erro(tipos incompativeis)
