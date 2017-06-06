@@ -1,6 +1,10 @@
-sseg SEGMENT STACK
-	byte 4000h DUP(?)
-sseg ENDS
 dseg SEGMENT PUBLIC
 	byte 4000h DUP(?)
+	sword ?
+	byte 256 DUP(?)
+	byte ?
 dseg ENDS
+	byte 'Digite seu nome: '$
+	byte 
+	byte 'Ola' '$
+	byte 

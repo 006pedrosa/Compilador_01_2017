@@ -3,3 +3,5 @@ ASSUME CS:cseg, DS,dseg
 strt:
 	mov AX, dseg
 	mov DS, AX
+cseg ENDS
+END strt

@@ -18,14 +18,14 @@ public class Compilador {
     public static BufferedWriter buffWriteDSEG, buffWriteCSEG;
     public static String path, pathDSEG, pathCSEG, pathFINAL, linha, token_atual, lex, tipoId;
     //public static AnalisadorLexico analisadorLexico = new AnalisadorLexico();
-    public static int erroLinha, posLinha, declaracao, memoria;
+    public static int erroLinha, posLinha, declaracao, memoria, memoria_tmp;
     public static Map<String, String> tS = new HashMap<String, String>();
     public static Map<String, String> hashTipo = new HashMap<String, String>();
     public static Map<String, String> hashClasse = new HashMap<String, String>();
     public static Map<String, Integer> hashEndereco = new HashMap<String, Integer>();
     
     //enderecos
-    public static int F_end, V_end, Y_end, T_end, EXPS_end, EXP_end;
+    public static int F_end, V_end, Y_end, T_end, EXPS_end, EXP_end, Const_end;
     
 
     //-----------------------------------------------ANALISADOR LEXICO----------------------
@@ -94,6 +94,18 @@ public class Compilador {
    //Efetua uma busca na hash pelo token desejado, retorna null se não encontrado
    public static String buscaHash(String token){
       return tS.get(token);
+   }
+   
+   //Efetua uma busca na hash pelo endereco armazenado na memoria
+   public static int getEnd(String token){
+      return hashEndereco.get(token);
+   }
+   
+   //Cria um novo temporario para armazenar na memoria
+   public static int novoTemp(int soma){
+       int resp = memoria_tmp;
+       memoria_tmp+=soma;
+       return resp;
    }
 
     public static void chamaTabela(){
@@ -358,6 +370,7 @@ public class Compilador {
    }
    //Metodo S
    public static void S() throws IOException{
+       memoria_tmp = 0;
        memoria = 4000;
        //Geracao de codigo - Acao 34
        try{
@@ -388,12 +401,12 @@ public class Compilador {
        }catch (IOException E){}
        
        casaToken("main");
-       //Geracao de codigo - Acao 36
        while(token_atual != "end"){
            COMANDO();
        }
        casaToken("end");
        
+       //Geracao de codigo acao 36
        try{
         buffWriteCSEG.write("cseg ENDS");
         buffWriteCSEG.newLine();
@@ -844,6 +857,8 @@ public static void CA() throws IOException{
            String F1_tipo = "";
            String auxToken = "";
            T_tipo = F();
+           T_end = F_end;
+           
 	   while(token_atual == "*" || token_atual == "/" || token_atual == "and"){
                    auxToken = token_atual;
 		   if(token_atual == "*"){
@@ -861,6 +876,8 @@ public static void CA() throws IOException{
                        if(T_tipo != "tipo-logico" || F1_tipo != "tipo-logico"){
                            System.out.println("Erro: Tipos incompativeis - Linha: "+erroLinha);
                            System.exit(0);
+                       } else {
+                           
                        }
                    }else if(auxToken == "*" || auxToken == "/"){
                        if(T_tipo != "tipo-byte" || T_tipo != "tipo-inteiro" || F1_tipo != "tipo-byte" || F1_tipo != "tipo-inteiro"){
@@ -869,10 +886,28 @@ public static void CA() throws IOException{
                        } else {
                            if(auxToken == "/"){
                                T_tipo = "tipo-inteiro";
+                               //Geracao de Codigo Acao 13
+                               buffWriteCSEG.write("mov AX, DS:["+T_end+"]");
+                               buffWriteCSEG.newLine();
+                               buffWriteCSEG.write("mov BX, DS:["+F_end+"]");
+                               buffWriteCSEG.newLine();
+                               buffWriteCSEG.write("div BX");
+                               buffWriteCSEG.newLine();
+                               buffWriteCSEG.write("mov DS:["+T_end+"], BX");
+                               buffWriteCSEG.newLine();
                            } else {
                                if(T_tipo != "tipo-byte" || F1_tipo != "tipo-byte"){
                                    T_tipo = "tipo-inteiro";
-                               }
+                               } 
+                               //Geracao de Codigo Acao 13
+                               buffWriteCSEG.write("mov AX, DS:["+T_end+"]");
+                               buffWriteCSEG.newLine();
+                               buffWriteCSEG.write("mov BX, DS:["+F_end+"]");
+                               buffWriteCSEG.newLine();
+                               buffWriteCSEG.write("mul BX");
+                               buffWriteCSEG.newLine();
+                               buffWriteCSEG.write("mov DS:["+T_end+"], BX");
+                               buffWriteCSEG.newLine();
                            }
                        }   
                    }
@@ -887,23 +922,64 @@ public static void CA() throws IOException{
            if(token_atual == "("){
 		   casaToken("(");
 		   F_tipo = EXP();
+                   F_end = EXP_end;
 		   casaToken(")");
 	   }else if(token_atual == "id"){
                    auxLex = lex;
 		   casaToken("id");
+                   
+                   F_end = getEnd(auxLex);
                    F_tipo = getTipo(auxLex);//procura na tabela de simbolos o tipo do id
 	   }else if(token_atual == "const"){
                    auxLex = lex;
   		   F_tipo = verTipoConst(lex);
+                   
+                   Const_end = memoria;
+                   
+                   //Geracao Codigo Acao 7
+                   if(F_tipo == "tipo-logico"){
+                       if(auxLex == "true"){
+                        try{
+                         buffWriteDSEG.write("\tbyte FFh");
+                         buffWriteDSEG.newLine();
+                        }catch (IOException E){}
+                       }else if(auxLex == "false"){
+                        try{
+                         buffWriteDSEG.write("\tbyte 0h");
+                         buffWriteDSEG.newLine();
+                        }catch (IOException E){}
+                       }
+                       memoria+= 1;
+                   }else if(F_tipo == "tipo-byte" ){
+                       buffWriteDSEG.write("\tbyte "+convertHexa(auxLex));
+                       buffWriteDSEG.newLine();
+                       memoria+= 1;
+                   }else if(F_tipo == "tipo-inteiro"){
+                       buffWriteDSEG.write("\tbyte "+auxLex);
+                       buffWriteDSEG.newLine();
+                       memoria+= 2;
+                   }else if(F_tipo == "tipo-string"){
+                       buffWriteDSEG.write("\tbyte "+auxLex+"$");
+                       buffWriteDSEG.newLine();
+                       memoria+= auxLex.length()+1;
+                   }
+                   
                    casaToken("const");
 	   }else if(token_atual == "not"){
 		   casaToken("not");
+                   
 		   F1_tipo = F();
                    if(F1_tipo != "tipo-logico"){
                        System.out.println("Erro: Tipo incompativel - Linha: "+erroLinha);
                        System.exit(0);
                    }else {
                        F_tipo = F1_tipo;
+                       buffWriteCSEG.write("\tmov AX, DS:["+F_end+"]");
+                       buffWriteDSEG.newLine();
+                       buffWriteCSEG.write("\tneg AX");
+                       buffWriteDSEG.newLine();
+                       buffWriteCSEG.write("\tmov DS:["+F_end+"], AX");
+                       buffWriteDSEG.newLine();
                    }
 	   }else if(token_atual == "true"){
 		   casaToken("true");
@@ -923,7 +999,7 @@ public static void CA() throws IOException{
    public static boolean verInt(String constante){ 
       boolean resp = false;
       int val = 0;
-        
+      
       if(constante.charAt(0) == '-'){
          if(constante.length() <= 6){
             for(int x = 1; x < constante.length(); x++){
@@ -1026,6 +1102,18 @@ public static void CA() throws IOException{
       
       return tipoConstante;
    }
+   
+   //Funcao que converte o modelo do hexa da Linguagem L para MASM
+   public static String convertHexa(String hexa){
+       String result = "";
+       
+       if(hexa.length()== 4){
+           result = hexa.charAt(2) + hexa.charAt(3) + "h";
+       }
+       
+       return result;
+   }
+
    
    //-------------------------------------------FIM DO VERIF TIPO CONST
    
