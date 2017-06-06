@@ -15,13 +15,17 @@ import java.util.Map;
 public class Compilador {
 
     public static BufferedReader buffRead;
-    public static BufferedWriter buffWrite;
-    public static String path, pathEscrita, linha, token_atual, lex, tipoId;
+    public static BufferedWriter buffWriteDSEG, buffWriteCSEG;
+    public static String path, pathDSEG, pathCSEG, pathFINAL, linha, token_atual, lex, tipoId;
     //public static AnalisadorLexico analisadorLexico = new AnalisadorLexico();
-    public static int erroLinha, posLinha, declaracao;
+    public static int erroLinha, posLinha, declaracao, memoria;
     public static Map<String, String> tS = new HashMap<String, String>();
     public static Map<String, String> hashTipo = new HashMap<String, String>();
     public static Map<String, String> hashClasse = new HashMap<String, String>();
+    public static Map<String, Integer> hashEndereco = new HashMap<String, Integer>();
+    
+    //enderecos
+    public static int F_end, V_end, Y_end, T_end, EXPS_end, EXP_end;
     
 
     //-----------------------------------------------ANALISADOR LEXICO----------------------
@@ -68,6 +72,15 @@ public class Compilador {
       tS.put(token, lexema);
       hashTipo.put(token, tipoId);
       hashClasse.put(token, classe);
+      hashEndereco.put(token, memoria);
+      
+      if(tipoId == "tipo-string"){
+          memoria+=256;
+      }else if(tipoId == "tipo-byte" || tipoId == "tipo-logico"){
+          memoria+=1;
+      }else if(tipoId == "tipo-inteiro"){
+          memoria+=2;
+      }
    }
    
    public static void setTipo(String token, String tipo){
@@ -345,14 +358,48 @@ public class Compilador {
    }
    //Metodo S
    public static void S() throws IOException{
+       memoria = 4000;
+       //Geracao de codigo - Acao 34
+       try{
+        buffWriteDSEG.write("dseg SEGMENT PUBLIC");
+        buffWriteDSEG.newLine();
+        buffWriteDSEG.write("\tbyte 4000h DUP(?)");
+        buffWriteDSEG.newLine();
+        
+        buffWriteCSEG.write("cseg SEGMENT PUBLIC");
+        buffWriteCSEG.newLine();
+        buffWriteCSEG.write("ASSUME CS:cseg, DS,dseg");
+        buffWriteCSEG.newLine();
+        buffWriteCSEG.write("strt:");
+        buffWriteCSEG.newLine();
+        buffWriteCSEG.write("\tmov AX, dseg");
+        buffWriteCSEG.newLine();
+        buffWriteCSEG.write("\tmov DS, AX");
+        buffWriteCSEG.newLine();
+       } catch (IOException E){}
+       
        while(token_atual != "main"){
            DECLARACAO();
        }
+       //Geracao de codigo - Acao 35
+       try{
+        buffWriteDSEG.write("dseg ENDS");
+        buffWriteDSEG.newLine();
+       }catch (IOException E){}
+       
        casaToken("main");
+       //Geracao de codigo - Acao 36
        while(token_atual != "end"){
            COMANDO();
        }
        casaToken("end");
+       
+       try{
+        buffWriteCSEG.write("cseg ENDS");
+        buffWriteCSEG.newLine();
+        buffWriteCSEG.write("END strt");
+        buffWriteCSEG.newLine();
+       }catch (IOException E){}
    }
    //Metodo DECLARACAO
    public static void DECLARACAO() throws IOException{
@@ -368,7 +415,22 @@ public class Compilador {
    //Metodo DV
    public static void DV() throws IOException{
        String id_tipo = TIPO();
+       String masm = "";
+       
        casaToken("id");
+       
+       //Geracao de codigo acao 5
+       if(id_tipo == "tipo-byte" || id_tipo == "tipo-logico"){
+          masm = "\tbyte ?";
+       } else if(id_tipo == "tipo-inteiro"){
+          masm = "\tsword ?";
+       } else if(id_tipo == "tipo-string"){
+          masm = "\tbyte 256 DUP(?)";
+       }
+        try{
+            buffWriteDSEG.write(masm);
+            buffWriteDSEG.newLine();
+           }catch (IOException E){}
        Y(id_tipo);
    }
    //Metodo DC
@@ -438,6 +500,8 @@ public class Compilador {
    //Metodo Y
    public static void Y(String Y_tipo) throws IOException{
        String EXP_tipo = "";
+       int tmp = 0;
+       
        if(token_atual == "="){
            casaToken("=");
            EXP_tipo = EXP();
@@ -447,8 +511,13 @@ public class Compilador {
                if(EXP_tipo == "tipo-string" || EXP_tipo == "tipo-logico" || Y_tipo == "tipo-string" || Y_tipo == "tipo-logico"){
                     System.out.println("Erro: Tipo incompativel - Linha: "+erroLinha);
                     System.exit(0);
+               }else if(Y_tipo == "tipo-inteiro"){
+                   if(EXP_tipo == "tipo-byte"){
+                       
+                   }
                }
            }
+           
            
            //Acao semantica: 22
            V(Y_tipo);
@@ -966,16 +1035,26 @@ public static void CA() throws IOException{
     //PROGRAMA PRINCIPAL
     public static void main(String[] args) throws FileNotFoundException, IOException {
         // TODO code application logic here
-    //path = args[0];
+       //path = args[0];
       //path = "C:/Users/lucas/Documents/NetBeansProjects/Compilador/src/compilador/novo_teste.l";
-      path = "C:/Users/Pedro/Documents/FACULDADE_PEDRO/Compiladores/BACKUP_TP_COMPILA/Compilador/src/compilador/t1.l";
-      pathEscrita = "C:/Users/Pedro/Documents/FACULDADE_PEDRO/Compiladores/BACKUP_TP_COMPILA/Compilador/src/compilador/t1.l";
+      //path = "C:/Users/Pedro/Documents/FACULDADE_PEDRO/Compiladores/BACKUP_TP_COMPILA/Compilador/src/compilador/t1.l";
+      //pathDSEG = "C:/Users/Pedro/Documents/FACULDADE_PEDRO/Compiladores/BACKUP_TP_COMPILA/Compilador/src/compilador/";
+      
+      path = "C:/wamp64/www/Compilador_01_2017/src/compilador/t1.l";
+      pathDSEG = "C:/wamp64/www/Compilador_01_2017/src/compilador/DSEG.txt";
+      pathCSEG = "C:/wamp64/www/Compilador_01_2017/src/compilador/CSEG.txt";
       erroLinha=0;
 
       buffRead = new BufferedReader(new FileReader(path));
-      //buffWrite = new BufferedWriter(new FileWriter());
+      buffWriteDSEG = new BufferedWriter(new FileWriter(pathDSEG));
+      buffWriteCSEG = new BufferedWriter(new FileWriter(pathCSEG));
+      
       analisadorSintatico();
-
+      
+      buffWriteDSEG.close();
+      buffWriteCSEG.close();
+      buffRead.close();
+      
       System.out.println("COMPILADO COM SUCESSO");
     }
 

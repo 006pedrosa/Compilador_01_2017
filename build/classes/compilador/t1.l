@@ -5,7 +5,7 @@ string nome;
 boolean naoTerminou;
 const MAXITER=10;
 
-/* Programa Principal 
+/* Programa Principal */
 main
   write('Digite seu nome: ');
   readln(nome);

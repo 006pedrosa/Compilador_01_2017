@@ -1,0 +1,208 @@
+﻿=============================DEFINIÇÕES===========================
+DV - Declaração de Variável
+DC - Declaração de COnstantes
+CA - Comando de Atribuição
+CR - Comando de Repetição
+CT - Comando de Teste
+CN - Comando Nulo
+CL - Comando de Leitura
+CE - Comando de Escrita
+TIPO - tipos de variáveis 
+==================================================================
+
+S -> {DECLARACAO}main{COMANDO}end
+
+DECLARACAO -> DV | DC
+
+COMANDO-> CA | CR | CT | CN | CL | CE 
+
+DV -> TIPO id(5)Y [TERMINADO]
+
+DC -> const id(25)=VALOR(31);
+
+CA -> id(30)=EXP(26);
+
+Y -> =EXP(21)(22)V | (22)V [TERMINADO]
+
+V-> ,(23)id(24)Y | ; [TERMINADO]
+
+TIPO -> integer(1) | byte(2) | string(3) | boolean(4) [TERMINADO]
+
+CR -> while'('EXP')'(27) X
+
+X ->  COMANDO | begin {COMANDO} end
+
+CT -> if'('EXP')'(27) then CT_A
+
+CT_A -> COMANDO [else COMANDO]| begin {COMANDO} end [else begin {COMANDO} end]
+
+CN -> ';'
+
+CL -> readln'('id'(30))'(28);
+
+CE -> write'('EXP(29){,EXP1(29)}')'; | writeln'('EXP(29){,EXP1(29)}')'; 
+
+EXP -> EXPS(18)[(<|>|<=|>=|==|!=)(19)EXPS1(20)] [TERMINADO]
+
+EXPS -> [+|-](14)T(15)(16){(+|-|or(12))T (17)} [TERMINADO]
+
+T -> F(11){(*|/|and (12))F(11)} (13) [TERMINADO]
+
+F -> "("EXP")"(9) | id(6) | const(32) | not F(10) | true(8) | false(8) [TERMINADO]
+
+VALOR-> const(32) | true(33) | false(33)
+
+====================================================================================
+
+	ESQUEMA DE TRADUÇÃO
+
+-------------------------------FUNCAO TIPO -------------------------------
+1 -> TIPO.tipo = tipo-inteiro
+2-> TIPO.tipo = tipo-byte
+3-> TIPO.tipo = tipo-string
+4-> TIPO.tipo = tipo-logico
+--------------------------------------------------------------------------
+				FUNCAO DV
+5-> id.tipo = TIPO.tipo;
+    Y.tipo = id.tipo; (CODIGO FALTANDO)
+==========================================================================
+				FUNCAO F
+6-> F.tipo = id.tipo
+7-> F.tipo = const.tipo
+8-> F.tipo = tipo-logico
+9-> F.tipo = EXP.tipo
+==========================================================================
+				FUNCAO T
+10-> if(F.tipo != tipo-logico) erro (tipos incompativeis)
+11-> F.tipo = f1.tipo
+12->auxiliarToken = lex
+	
+13-> if(auxiliarToken == "AND"){
+	if(F1.tipo != tipo-logico || F2.tipo != tipo-logico)
+		erro(tipos incompativeis)
+	else
+		T.tipo = tipo-logico
+      }else if (auxiliarToken == "*" || auxiliarToken == "/"){
+	  if(F1.tipo != tipo-byte || F1.tipo != tipo-inteiro || F2.tipo != tipo-byte || F2.tipo != tipo-inteiro)
+		erro(tipos incompativeis)
+	  else{
+		if(F1.tipo == tipo-logico || F1.tipo == tipo-string || F2.tipo == tipo-logico || F2.tipo == tipo-string)
+			erro(tipos incompativeis)
+		else{
+			if(auxiliarToken == /)
+				T.tipo = "tipo-inteiro"
+			else{
+				if(F1.tipo == "tipo-byte" && F2.tipo == "tipo-byte")
+					T.tipo = "tipo-byte"
+				else
+					T.tipo = "tipo-inteiro"
+			}
+		}
+	  }else{
+		T.tipo = F1.tipo
+	}
+==========================================================================
+				FUNCAO EXPS
+14-> if(lex == "+" || lex == "-")
+	auxiliarToken = "lex"
+
+15-> EXPS.tipo = t1.tipo
+
+16-> if(auxiliarToken == "-"){
+		if(EXPS.tipo == "tipo-string" || EXPS.tipo = "tipo-logico" )
+			erro(tipos incompativeis)
+		else
+			T1.tipo = "tipo-inteiro"
+     }else if (auxiliarToken == "+"){
+		if(EXPS.tipo == "tipo-logico")
+			erro(tipos incompativeis)
+	}
+	
+17-> if(auxiliarToken == "OR"){
+	if(EXPS.tipo != tipo-logico || T1.tipo != tipo-logico)
+		erro(tipos incompativeis)
+	else{
+		EXPS.tipo = "tipo-logico"
+	}
+     }else if(auxiliarToken == "+" || auxiliarToken == "-"){
+	if(EXPS.tipo == "tipo-logico" || T1.tipo == "tipo-logico")
+		erro(tipos incompativeis)
+	  else{
+		if(auxiliarToken == "-"){
+			if((EXPS.tipo == "tipo-string" || T1.tipo == "tipo-string"))
+				erro(tipos incompativeis)
+			else
+				EXPS.tipo = "tipo-inteiro"
+		}else{
+			if(EXPS.tipo == "tipo-string" || T1.tipo == "tipo-string")
+				EXPS.tipo = "tipo-string"
+			else
+				EXPS.tipo = "tipo-inteiro"	
+		}
+	}else{
+		EXPS.tipo = T1.tipo
+	}
+========================================================================
+				FUNCAO EXP
+18-> EXP.tipo = EXPS.tipo
+
+19-> auxiliarToken = lex
+
+20-> if(auxiliarToken == "=="){ //CORRIGIR
+		if(EXP.tipo != EXPS1.tipo)
+			if(EXP.tipo == "tipo-string" || EXP.tipo == "tipo-logico" || EXPS1.tipo == "tipo-string" || EXPS1.tipo == "tipo-logico")
+				erro(tipos incompativeis)
+			else
+				EXP.tipo = "tipo-logico"
+		else
+				EXP.tipo = "tipo-logico"
+    else if(auxiliarToken == "<" || auxiliarToken = ">" || auxiliarToken == "<=" || auxiliarToken == ">=" || auxiliarToken == "!="){
+	if(EXP.tipo == "tipo-string" || EXPS1.tipo == "tipo-string")
+		erro(tipos incompativeis)
+	else
+		if(EXP.tipo == EXPS1.tipo)
+			EXP.tipo = "tipo-logico"
+		else
+			if(EXP.tipo == "tipo-string" || EXP.tipo == "tipo-logico" || EXPS1.tipo == "tipo-string" || EXPS1.tipo == "tipo-logico")
+				erro(tipos incompativeis)
+			else
+				EXP.tipo = "tipo-logico"
+	}
+=================================================================
+		                  FUNÇÃO Y
+21-> if(Y.tipo != EXP.tipo){
+	if(EXP.tipo == "tipo-string" || EXP.tipo == "tipo-logico" || Y.tipo == "tipo-string" || Y.tipo == "tipo-logico")
+		erro(tipos incompativeis)
+	else{}
+}
+
+22-> V.tipo = Y.tipo
+
+23-> id.tipo = V.tipo
+
+24-> Y.tipo = V.tipo
+
+25-> auxiliarLex = id.lex
+
+26-> if(id.tipo != EXP.tipo)
+	if(EXP.tipo == "tipo-string" || EXP.tipo == "tipo-logico" || id.tipo == "tipo-string" || id.tipo == "tipo-logico")
+		erro(tipos incompativeis)
+	else{}
+
+27-> if(EXP.tipo != "tipo-logico")
+	erro(tipos incompativeis)
+
+28-> if(id.tipo != const.tipo)
+	erro(tipos incompativeis)
+
+29-> if(EXP.tipo == "tipo-logico")
+	erro(tipos incompativeis)
+
+30->if(getHash == null)
+	erro(Identificador não declarado)
+
+31->id.tipo = EXP.tipo
+
+32-> VALOR.tipo = const.tipo
+
+33-> VALOR.tipo = "tipo-logico"

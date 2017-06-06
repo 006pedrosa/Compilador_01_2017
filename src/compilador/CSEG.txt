@@ -1,0 +1,5 @@
+cseg SEGMENT PUBLIC
+ASSUME CS:cseg, DS,dseg
+strt:
+	mov AX, dseg
+	mov DS, AX

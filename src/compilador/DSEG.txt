@@ -1,0 +1,6 @@
+sseg SEGMENT STACK
+	byte 4000h DUP(?)
+sseg ENDS
+dseg SEGMENT PUBLIC
+	byte 4000h DUP(?)
+dseg ENDS
