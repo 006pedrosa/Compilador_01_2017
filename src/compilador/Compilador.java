@@ -15,7 +15,8 @@ import java.util.Map;
 public class Compilador {
 
     public static BufferedReader buffRead;
-    public static String path, linha, token_atual, lex, tipoId;
+    public static BufferedWriter buffWrite;
+    public static String path, pathEscrita, linha, token_atual, lex, tipoId;
     //public static AnalisadorLexico analisadorLexico = new AnalisadorLexico();
     public static int erroLinha, posLinha, declaracao;
     public static Map<String, String> tS = new HashMap<String, String>();
@@ -968,9 +969,11 @@ public static void CA() throws IOException{
     //path = args[0];
       //path = "C:/Users/lucas/Documents/NetBeansProjects/Compilador/src/compilador/novo_teste.l";
       path = "C:/Users/Pedro/Documents/FACULDADE_PEDRO/Compiladores/BACKUP_TP_COMPILA/Compilador/src/compilador/t1.l";
+      pathEscrita = "C:/Users/Pedro/Documents/FACULDADE_PEDRO/Compiladores/BACKUP_TP_COMPILA/Compilador/src/compilador/t1.l";
       erroLinha=0;
 
       buffRead = new BufferedReader(new FileReader(path));
+      //buffWrite = new BufferedWriter(new FileWriter());
       analisadorSintatico();
 
       System.out.println("COMPILADO COM SUCESSO");
