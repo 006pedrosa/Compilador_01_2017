@@ -19,9 +19,9 @@ COMANDO-> CA | CR | CT | CN | CL | CE
 
 DV -> TIPO id(5)Y [TERMINADO]
 
-DC -> const id(25)=VALOR(31);
+DC -> const id(25)=VALOR(31); [TERMINADO]
 
-CA -> id(30)=EXP(26);
+CA -> id(30)=EXP(26); [TERMINADO]
 
 Y -> =EXP(21)(22)V | (22)V [TERMINADO]
 
@@ -29,7 +29,7 @@ V-> ,(23)id(24)Y | ; [TERMINADO]
 
 TIPO -> integer(1) | byte(2) | string(3) | boolean(4) [TERMINADO]
 
-CR -> while'('EXP')'(27) X
+CR -> (37)while'('EXP')'(27) X(38) [TERMINADO]
 
 X ->  COMANDO | begin {COMANDO} end
 
@@ -51,7 +51,7 @@ T -> F(11){(*|/|and (12))F(11)(13)}  [TERMINADO]
 
 F -> "("EXP")"(9) | id(6) | const(7) | not F(10) | true(7) | false(7) [TERMINADO]
 
-VALOR-> const(32) | true(33) | false(33)
+VALOR-> const(32) | true(33) | false(33) [TERMINADO]
 
 ====================================================================================
 
@@ -332,25 +332,81 @@ VALOR-> const(32) | true(33) | false(33)
 =================================================================
 		                  FUNÇÃO Y
 21-> if(Y.tipo != EXP.tipo){
-	if(Y.tipo == "tipo-inteiro"){
-           write(
-              mov ah, DS:[y.end] 
-           )
-        }
-}
+	if(Y.tipo == "tipo-inteiro" || Y.tipo == ""tipo-byte || EXP.tipo == "tipo-inteiro" || EXP.tipo == "tipo-byte"){
+              mov AX, DS:[EXP.end]
+	      mov DS:[Y.end], AX
+        }else{
+		ERRO!!	
+	}
+     }else{
+		if(Y.tipo == "tipo-string"){
+			mov DI, Y.end
+			mov SI, EXP.end
+			RN = NRot;
+			RN+1 = NRot;
+		     RN:
+			mov AX, DS:[SI]
+			mov DS:[DI], AX
+			add DI, 1
+			add SI, 1
+			cmp AX, $
+			je RN+1
+			jmp RN
+		     RN+1:
+		}else{
+			mov AX, DS:[EXP.end]
+			mov DS:[Y.end], AX
+		}
+	}	
 
-22-> V.tipo = Y.tipo
+22-> V.end = Y.end
 
-23-> id.tipo = V.tipo
+23-> if(id_tipo == "tipo-byte" || id_tipo == "tipo-logico"){
+          write(
+             byte ?
+          ) //dseg file
+    } else if(id_tipo == "tipo-inteiro"){
+          write(
+             sword ?
+          ) //dseg file
+    } else if(id_tipo == "tipo-string"){
+          write(
+             byte 256 DUP(?)s
+          ) //dseg file
+    }
 
-24-> Y.tipo = V.tipo
+24-> Y.end = V.end
 
 25-> auxiliarLex = id.lex
 
 26-> if(id.tipo != EXP.tipo)
 	if(EXP.tipo == "tipo-string" || EXP.tipo == "tipo-logico" || id.tipo == "tipo-string" || id.tipo == "tipo-logico")
 		erro(tipos incompativeis)
-	else{}
+	else{
+	      mov AX, DS:[EXP.end]
+	      mov DS:[CA.end], AX
+	}
+    }else{
+
+ 		if(CA.tipo == "tipo-string"){
+			mov DI, Y.end
+			mov SI, EXP.end
+			RN = NRot;
+			RN+1 = NRot;
+		     RN:
+			mov AX, DS:[SI]
+			mov DS:[DI], AX
+			add DI, 1
+			add SI, 1
+			cmp AX, $
+			je RN+1
+			jmp RN
+		     RN+1:
+		}else{
+			mov AX, DS:[EXP.end]
+			mov DS:[Y.end], AX
+		}
+	}
 
 27-> if(EXP.tipo != "tipo-logico")
 	erro(tipos incompativeis)
@@ -361,8 +417,7 @@ VALOR-> const(32) | true(33) | false(33)
 29-> if(EXP.tipo == "tipo-logico")
 	erro(tipos incompativeis)
 
-30->if(getHash == null)
-	erro(Identificador não declarado)
+30->CA_end = getEnd(lex)
 
 31->id.tipo = EXP.tipo
 
@@ -392,3 +447,10 @@ VALOR-> const(32) | true(33) | false(33)
        cseg ENDS
        END strt 
      ) //cseg file
+
+37-> RN
+
+38->
+	mov AX, DS:[EXP_end]
+	cmp AX, 1
+	jne RN

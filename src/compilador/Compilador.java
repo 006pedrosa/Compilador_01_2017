@@ -16,7 +16,7 @@ public class Compilador {
 
     public static BufferedReader buffRead;
     public static BufferedWriter buffWriteDSEG, buffWriteCSEG;
-    public static String path, pathDSEG, pathCSEG, pathFINAL, linha, token_atual, lex, tipoId;
+    public static String path, pathDSEG, pathCSEG, pathFINAL, linha, token_atual, lex, tipoId, aux_lex;
     //public static AnalisadorLexico analisadorLexico = new AnalisadorLexico();
     public static int erroLinha, posLinha, declaracao, memoria, memoria_tmp, contRot;
     public static Map<String, String> tS = new HashMap<String, String>();
@@ -25,7 +25,7 @@ public class Compilador {
     public static Map<String, Integer> hashEndereco = new HashMap<String, Integer>();
     
     //enderecos
-    public static int F_end, V_end, Y_end, T_end, EXPS_end, EXP_end, Const_end, temp_end;
+    public static int F_end, V_end, Y_end, T_end, EXPS_end, EXP_end, Const_end, temp_end, id_end, DC_end, CA_end;
     
 
     //-----------------------------------------------ANALISADOR LEXICO----------------------
@@ -452,6 +452,7 @@ public class Compilador {
        String id_tipo = "";
        String idLex = "";
        String idConst = "";
+       String masm = "";
        
        tipoId = "const";
        declaracao = 1;
@@ -459,6 +460,7 @@ public class Compilador {
        declaracao = 0;
        
        idLex = lex;
+       DC_end = memoria;
        casaToken("id");
       
        casaToken("=");
@@ -469,6 +471,15 @@ public class Compilador {
 
        setTipo(idLex, id_tipo);
        
+        //Geracao de codigo acao 5
+       if(id_tipo == "tipo-inteiro"){
+          masm = "\tsword "+aux_lex+"";
+       }else{
+          masm = "\tbyte "+aux_lex+"";
+       }
+       buffWriteDSEG.write(masm);
+       buffWriteDSEG.newLine();
+       
        casaToken(";");
        
    }
@@ -478,12 +489,15 @@ public class Compilador {
        
        if(token_atual == "const"){
           VALOR_tipo = verTipoConst(lex);
+          aux_lex = lex;
           casaToken("const");
        }else if(token_atual == "true"){
            VALOR_tipo = "tipo-logico";
+           aux_lex = "FFh";
            casaToken("true");
        }else{
            VALOR_tipo = "tipo-logico";
+           aux_lex = "0h";
            casaToken("false");
        }
        
@@ -519,30 +533,67 @@ public class Compilador {
        if(token_atual == "="){
            casaToken("=");
            EXP_tipo = EXP();
+           Y_end = EXP_end;
            
            //Acao semantica: 21
            if(EXP_tipo != Y_tipo){
                if(EXP_tipo == "tipo-string" || EXP_tipo == "tipo-logico" || Y_tipo == "tipo-string" || Y_tipo == "tipo-logico"){
                     System.out.println("Erro: Tipo incompativel - Linha: "+erroLinha);
                     System.exit(0);
-               }else if(Y_tipo == "tipo-inteiro"){
-                   if(EXP_tipo == "tipo-byte"){
-                       
-                   }
+               }else{
+                    buffWriteCSEG.write("\tmov AX, DS:["+EXP_end+"]");
+                    buffWriteCSEG.newLine();
+                    buffWriteCSEG.write("\tmov DS:["+Y_end+"], AX");
+                    buffWriteCSEG.newLine();
                }
+           }else{
+                if(EXP_tipo == "tipo-string"){
+                    buffWriteCSEG.write("\tmov DI, "+Y_end+"");
+                    buffWriteCSEG.newLine();
+                    buffWriteCSEG.write("\tmov SI, "+EXP_end+"");
+                    buffWriteCSEG.newLine();
+                    buffWriteCSEG.write("R"+contRot+":");
+                    buffWriteCSEG.newLine();
+                    buffWriteCSEG.write("\tmov AX, DS:[DI]");
+                    buffWriteCSEG.newLine();
+                    buffWriteCSEG.write("\tmov SI, DS:["+EXP_end+"]");
+                    buffWriteCSEG.newLine();
+                    buffWriteCSEG.write("\tadd DI, 1");
+                    buffWriteCSEG.newLine();
+                    buffWriteCSEG.write("\tadd SI, 1");
+                    buffWriteCSEG.newLine();
+                    buffWriteCSEG.write("\tcmp AX, $");
+                    buffWriteCSEG.newLine();
+                    buffWriteCSEG.write("\tje R"+(contRot+1)+"");
+                    buffWriteCSEG.newLine();
+                    buffWriteCSEG.write("\tjmp R"+contRot+"");
+                    buffWriteCSEG.newLine();
+                    buffWriteCSEG.write("R"+(contRot+1)+":");
+                    buffWriteCSEG.newLine();
+                    contRot+=2;
+                    
+                }else{
+                    buffWriteCSEG.write("\tmov AX, DS:["+EXP_end+"]");
+                    buffWriteCSEG.newLine();
+                    buffWriteCSEG.write("\tmov DS:["+Y_end+"], AX");
+                    buffWriteCSEG.newLine();
+                }
            }
            
            
            //Acao semantica: 22
+           V_end = Y_end;
            V(Y_tipo);
        }else{
            //Acao semantica: 22
+           V_end = Y_end;
            V(Y_tipo);
        }
    }
 
    //Metodo V
    public static void V(String V_tipo) throws IOException{
+       String masm = "";
        if(token_atual == ";"){
            casaToken(";");
        }else if (token_atual == ","){
@@ -551,7 +602,22 @@ public class Compilador {
            casaToken(",");
            declaracao = 0;
            
+           id_end = getEnd(lex);
+            
            casaToken("id");
+           
+           //Geracao de codigo acao 5
+           if(V_tipo == "tipo-byte" || V_tipo == "tipo-logico"){
+                   masm = "\tbyte ?";
+           } else if(V_tipo == "tipo-inteiro"){
+                   masm = "\tsword ?";
+           } else if(V_tipo == "tipo-string"){
+               masm = "\tbyte 256 DUP(?)";
+           }
+           buffWriteDSEG.write(masm);
+           buffWriteDSEG.newLine();
+           
+           Y_end = memoria;
            //Acao semantica: 24
            Y(V_tipo);
        }else{
@@ -589,7 +655,9 @@ public static void CA() throws IOException{
             }
             
             casaToken("id");
-            id_tipo = getTipo(auxLex); 
+            id_tipo = getTipo(auxLex);
+            id_end = getEnd(auxLex);
+            
             casaToken("=");
             EXP_tipo = EXP();
             
@@ -597,6 +665,43 @@ public static void CA() throws IOException{
                 if(id_tipo == "tipo-string" || id_tipo == "tipo-logico" || EXP_tipo == "tipo-string" || EXP_tipo == "tipo-logico"){
                         System.out.println("Erro: Tipo incompativel - Linha: "+erroLinha+ " tipos comparados: " + id_tipo + " e " + EXP_tipo);
                         System.exit(0);
+                }else{
+                    buffWriteCSEG.write("\tmov AX, DS:["+EXP_end+"]");
+                    buffWriteCSEG.newLine();
+                    buffWriteCSEG.write("\tmov DS:["+id_end+"], AX");
+                    buffWriteCSEG.newLine();   
+                }
+            }else{
+                    if(EXP_tipo == "tipo-string"){
+                    buffWriteCSEG.write("\tmov DI, "+id_end+"");
+                    buffWriteCSEG.newLine();
+                    buffWriteCSEG.write("\tmov SI, "+EXP_end+"");
+                    buffWriteCSEG.newLine();
+                    buffWriteCSEG.write("R"+contRot+":");
+                    buffWriteCSEG.newLine();
+                    buffWriteCSEG.write("\tmov AX, DS:[DI]");
+                    buffWriteCSEG.newLine();
+                    buffWriteCSEG.write("\tmov SI, DS:["+EXP_end+"]");
+                    buffWriteCSEG.newLine();
+                    buffWriteCSEG.write("\tadd DI, 1");
+                    buffWriteCSEG.newLine();
+                    buffWriteCSEG.write("\tadd SI, 1");
+                    buffWriteCSEG.newLine();
+                    buffWriteCSEG.write("\tcmp AX, $");
+                    buffWriteCSEG.newLine();
+                    buffWriteCSEG.write("\tje R"+(contRot+1)+"");
+                    buffWriteCSEG.newLine();
+                    buffWriteCSEG.write("\tjmp R"+contRot+"");
+                    buffWriteCSEG.newLine();
+                    buffWriteCSEG.write("R"+(contRot+1)+":");
+                    buffWriteCSEG.newLine();
+                    contRot+=2;
+                    
+                }else{
+                    buffWriteCSEG.write("\tmov AX, DS:["+EXP_end+"]");
+                    buffWriteCSEG.newLine();
+                    buffWriteCSEG.write("\tmov DS:["+id_end+"], AX");
+                    buffWriteCSEG.newLine();
                 }
             }
             casaToken(";");
@@ -604,10 +709,19 @@ public static void CA() throws IOException{
    //Metodo CR
    public static void CR() throws IOException{
 	   String CR_tipo = "";
+           int auxCont = contRot;
+           int exp_aux_end;
+           
+           contRot+=1;
+           
+           buffWriteCSEG.write("R"+auxCont+":");
+           buffWriteCSEG.newLine();
+           
            casaToken("while");
 	   casaToken("(");
 	   
            CR_tipo = EXP();
+           exp_aux_end = EXP_end;
            
            if(CR_tipo != "tipo-logico"){
                System.out.println("Erro: Tipo incompativel - Linha: "+erroLinha+ " tipos esperado:  tipo-logico - tipo encontrado : " + CR_tipo);
@@ -615,6 +729,15 @@ public static void CA() throws IOException{
            }
 	   casaToken(")");
 	   X();
+           
+           buffWriteCSEG.write("\tmov AX, DS:["+exp_aux_end+"]");
+           buffWriteCSEG.newLine();
+           buffWriteCSEG.write("\tcmp AX, 1");
+           buffWriteCSEG.newLine();
+           buffWriteCSEG.write("\tjmp R"+auxCont+"");
+           buffWriteCSEG.newLine();
+           
+           
 
    }
    //Metodo X
@@ -1165,6 +1288,7 @@ public static void CA() throws IOException{
                        memoria+= auxLex.length()+1;
                    }
                    
+                   F_end = Const_end;
                    casaToken("const");
 	   }else if(token_atual == "not"){
 		   casaToken("not");
@@ -1183,9 +1307,11 @@ public static void CA() throws IOException{
                        buffWriteDSEG.newLine();
                    }
 	   }else if(token_atual == "true"){
+                   F_end = memoria-1;
 		   casaToken("true");
                    F_tipo = "tipo-logico";
 	   }else if (token_atual == "false"){
+                   F_end = memoria-1;
 		   casaToken("false");
                    F_tipo = "tipo-logico";
 	   }
