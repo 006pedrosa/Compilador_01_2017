@@ -823,13 +823,43 @@ public static void CA() throws IOException{
    public static void CL() throws IOException{
         String auxLex = "";
         String id_tipo = "";
+        int buffer_end = memoria;
+        memoria += 256;
+        
+        buffWriteDSEG.write("\t byte 256 DUP(?)");
+        buffWriteDSEG.newLine();
+        
         
         casaToken("readln");
         casaToken("(");
+        
+        buffWriteCSEG.write("\tmov  DX, "+buffer_end+"");
+        buffWriteCSEG.newLine();
+        buffWriteCSEG.write("\tmov  AL, 0FFh");
+        buffWriteCSEG.newLine();
+        buffWriteCSEG.write("\tmov  DS:["+buffer_end+"], AL");
+        buffWriteCSEG.newLine();
+        buffWriteCSEG.write("\tmov  AH, 0Ah");
+        buffWriteCSEG.newLine();
+        buffWriteCSEG.write("\tint  21h");
+        buffWriteCSEG.newLine();
+        buffWriteCSEG.write("\tmov  AH, 02h");
+        buffWriteCSEG.newLine();
+        buffWriteCSEG.write("\tmov  DL, 0Dh");
+        buffWriteCSEG.newLine();
+        buffWriteCSEG.write("\tint  21h");
+        buffWriteCSEG.newLine();
+        buffWriteCSEG.write("\tmov  DL, 0Ah");
+        buffWriteCSEG.newLine();
+        buffWriteCSEG.write("\tint  21h");
+        buffWriteCSEG.newLine();
+        
          
         auxLex = lex;
         casaToken("id");
         id_tipo = getTipo(auxLex);
+        
+
         
         //ACAO SEMANTICA 30
         if(id_tipo == null){
