@@ -3,8 +3,11 @@ dseg SEGMENT PUBLIC
 	sword ?
 	byte 256 DUP(?)
 	byte ?
-dseg ENDS
+	byte 10
 	byte 'Digite seu nome: '$
-	byte 
+	 byte 256 DUP(?)
+	byte 0
 	byte 'Ola' '$
-	byte 
+	byte 1
+	byte?
+dseg ENDS

@@ -826,7 +826,7 @@ public static void CA() throws IOException{
         int buffer_end = memoria;
         memoria += 256;
         
-        buffWriteDSEG.write("\t byte 256 DUP(?)");
+        buffWriteDSEG.write("\tbyte 256 DUP(?)");
         buffWriteDSEG.newLine();
         
         
@@ -1056,6 +1056,7 @@ public static void CA() throws IOException{
                         buffWriteCSEG.newLine();
                         buffWriteCSEG.write("\tint 21h");
                         buffWriteCSEG.newLine();
+                        contRot+=2;
            
                    }
 		   while(token_atual != ")"){
@@ -1129,6 +1130,7 @@ public static void CA() throws IOException{
                             buffWriteCSEG.newLine();
                             buffWriteCSEG.write("\tint 21h");
                             buffWriteCSEG.newLine();
+                            contRot+=2;
            
                         }
 		   }
@@ -1216,6 +1218,7 @@ public static void CA() throws IOException{
                             buffWriteCSEG.newLine();
                             buffWriteCSEG.write("\tint  21h");
                             buffWriteCSEG.newLine();
+                            contRot+=2;
            
                         }
 		   while(token_atual != ")"){
@@ -1299,7 +1302,8 @@ public static void CA() throws IOException{
                             buffWriteCSEG.newLine();
                             buffWriteCSEG.write("\tint  21h");
                             buffWriteCSEG.newLine();
-           
+                            
+                            contRot+=2;
                         }
 		   }
 		   casaToken(")");
@@ -1900,14 +1904,14 @@ public static void CA() throws IOException{
       // TODO code application logic here
       //path = args[0];
       //path = "C:/Users/lucas/Documents/NetBeansProjects/Compilador/src/compilador/novo_teste.l";
-      path = "C:/Users/Pedro/Documents/FACULDADE_PEDRO/Compiladores/BACKUP_TP_COMPILA/Compilador/src/compilador/t1.l";
-      pathDSEG = "C:/Users/Pedro/Documents/FACULDADE_PEDRO/Compiladores/BACKUP_TP_COMPILA/Compilador/src/compilador/DSEG.txt";
-      pathCSEG = "C:/Users/Pedro/Documents/FACULDADE_PEDRO/Compiladores/BACKUP_TP_COMPILA/Compilador/src/compilador/CSEG.txt";
-      pathFINAL = "C:/Users/Pedro/Documents/FACULDADE_PEDRO/Compiladores/BACKUP_TP_COMPILA/Compilador/src/compilador/saida.asm";
-      //path = "C:/wamp64/www/Compilador_01_2017/src/compilador/t1.l";
-      //pathDSEG = "C:/wamp64/www/Compilador_01_2017/src/compilador/DSEG.txt";
-      //pathCSEG = "C:/wamp64/www/Compilador_01_2017/src/compilador/CSEG.txt";
-      //pathFINAL = "C:/wamp64/www/Compilador_01_2017/src/compilador/CSEG.txt";
+      //path = "C:/Users/Pedro/Documents/FACULDADE_PEDRO/Compiladores/BACKUP_TP_COMPILA/Compilador/src/compilador/t1.l";
+      //pathDSEG = "C:/Users/Pedro/Documents/FACULDADE_PEDRO/Compiladores/BACKUP_TP_COMPILA/Compilador/src/compilador/DSEG.txt";
+      //pathCSEG = "C:/Users/Pedro/Documents/FACULDADE_PEDRO/Compiladores/BACKUP_TP_COMPILA/Compilador/src/compilador/CSEG.txt";
+      //pathFINAL = "C:/Users/Pedro/Documents/FACULDADE_PEDRO/Compiladores/BACKUP_TP_COMPILA/Compilador/src/compilador/saida.asm";
+      path = "C:/wamp64/www/Compilador_01_2017/src/compilador/t1.l";
+      pathDSEG = "C:/wamp64/www/Compilador_01_2017/src/compilador/DSEG.txt";
+      pathCSEG = "C:/wamp64/www/Compilador_01_2017/src/compilador/CSEG.txt";
+      pathFINAL = "C:/wamp64/www/Compilador_01_2017/src/compilador/saida.asm";
       erroLinha=0;
 
       buffRead = new BufferedReader(new FileReader(path));
@@ -1937,6 +1941,10 @@ public static void CA() throws IOException{
           buffWriteFinal.newLine();
           ler = buffReadCSEG.readLine();
       }
+      
+      buffWriteDSEG.close();
+      buffWriteCSEG.close();
+      buffWriteFinal.close();
       
       System.out.println("COMPILADO COM SUCESSO");
     }

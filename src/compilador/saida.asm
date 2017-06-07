@@ -1,3 +1,16 @@
+dseg SEGMENT PUBLIC
+	byte 4000h DUP(?)
+	sword ?
+	byte 256 DUP(?)
+	byte ?
+	byte 10
+	byte 'Digite seu nome: '$
+	 byte 256 DUP(?)
+	byte 0
+	byte 'Ola' '$
+	byte 1
+	byte?
+dseg ENDS
 cseg SEGMENT PUBLIC
 ASSUME CS:cseg, DS,dseg
 strt:
