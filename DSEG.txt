@@ -4,10 +4,10 @@ dseg SEGMENT PUBLIC
 	byte 256 DUP(?)
 	byte ?
 	byte 10
-	byte 'Digite seu nome: '$
+	byte 'Digite seu nome: $'
 	byte 256 DUP(?)
 	byte 0
-	byte 'Ola' '$
+	byte 'Ola  $'
 	byte 1
-	byte?
+	byte ?
 dseg ENDS

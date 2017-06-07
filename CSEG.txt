@@ -1,5 +1,5 @@
 cseg SEGMENT PUBLIC
-ASSUME CS:cseg, DS,dseg
+ASSUME CS:cseg, DS:dseg
 strt:
 	mov AX, dseg
 	mov DS, AX
@@ -142,13 +142,13 @@ R11:
 	mov CX, 0h
 	jmp R13
 R12:
-	mov CX, FFh
-R14:
+	mov CX, 0FFh
+R13:
 	mov DS:[4545], CX
 	mov AX, DS:[4545]
 	mov DS:[4258], AX
 	mov AX, DS:[4258]
-	cmp AX, FFh
+	cmp AX, 0FFh
 	jmp R5
 cseg ENDS
 END strt

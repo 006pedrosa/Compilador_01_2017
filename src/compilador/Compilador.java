@@ -494,7 +494,7 @@ public class Compilador {
           casaToken("const");
        }else if(token_atual == "true"){
            VALOR_tipo = "tipo-logico";
-           aux_lex = "FFh";
+           aux_lex = "0FFh";
            casaToken("true");
        }else{
            VALOR_tipo = "tipo-logico";
@@ -733,7 +733,7 @@ public static void CA() throws IOException{
            
            buffWriteCSEG.write("\tmov AX, DS:["+exp_aux_end+"]");
            buffWriteCSEG.newLine();
-           buffWriteCSEG.write("\tcmp AX, FFh");
+           buffWriteCSEG.write("\tcmp AX, 0FFh");
            buffWriteCSEG.newLine();
            buffWriteCSEG.write("\tjmp R"+auxCont+"");
            buffWriteCSEG.newLine();
@@ -765,7 +765,7 @@ public static void CA() throws IOException{
                 }else{
                     buffWriteCSEG.write("\tmov AX, DS:["+EXP_end+"]");
                     buffWriteCSEG.newLine();
-                    buffWriteCSEG.write("\tcmp AX, FFh");
+                    buffWriteCSEG.write("\tcmp AX, 0FFh");
                     buffWriteCSEG.newLine();
                     buffWriteCSEG.write("\tjne R"+contRot+"");
                     buffWriteCSEG.newLine();                             
@@ -1345,7 +1345,7 @@ public static void CA() throws IOException{
                        buffWriteCSEG.newLine();
                        buffWriteCSEG.write("R"+(contRot)+":");
                        buffWriteCSEG.newLine();
-                       buffWriteCSEG.write("\tmov CX, FFh");
+                       buffWriteCSEG.write("\tmov CX, 0FFh");
                        buffWriteCSEG.newLine();
                        contRot+=2;
                        
@@ -1381,7 +1381,7 @@ public static void CA() throws IOException{
                        buffWriteCSEG.newLine();
                        buffWriteCSEG.write("\tje R"+contRot+"");
                        buffWriteCSEG.newLine();
-                       buffWriteCSEG.write("\tmov CX, FFh");
+                       buffWriteCSEG.write("\tmov CX, 0FFh");
                        buffWriteCSEG.newLine();
                        buffWriteCSEG.write("\tmov DS:["+temp_end+"], CX");
                        buffWriteCSEG.newLine();
@@ -1422,6 +1422,7 @@ public static void CA() throws IOException{
                     buffWriteDSEG.newLine();
                     temp_end = memoria;
                     memoria += 1;
+                    
                     buffWriteCSEG.write("\tmov AX, DS:["+EXP_end+"]");
                     buffWriteCSEG.newLine();
                     buffWriteCSEG.write("\tmov BX, DS:["+EXPS_end+"]");
@@ -1436,15 +1437,16 @@ public static void CA() throws IOException{
                     buffWriteCSEG.newLine();
                     buffWriteCSEG.write("R"+(contRot)+":");
                     buffWriteCSEG.newLine();
-                    buffWriteCSEG.write("\tmov CX, FFh");
+                    buffWriteCSEG.write("\tmov CX, 0FFh");
                     buffWriteCSEG.newLine();
                     
-                    contRot+=2;
                        
-                    buffWriteCSEG.write("R"+(contRot)+":");
+                    buffWriteCSEG.write("R"+(contRot+1)+":");
                     buffWriteCSEG.newLine();
                     buffWriteCSEG.write("\tmov DS:["+ temp_end +"], CX");
                     buffWriteCSEG.newLine();
+                    
+                    contRot += 2;
                        
                     EXP_end = temp_end;
                     EXP_tipo = "tipo-logico";
@@ -1675,6 +1677,7 @@ public static void CA() throws IOException{
            String F_tipo = "";//Variavel que guarda o retorno dos tipos
            String F1_tipo = "";
 	   String auxLex = "";
+           String auxString = "";
            if(token_atual == "("){
 		   casaToken("(");
 		   F_tipo = EXP();
@@ -1696,7 +1699,7 @@ public static void CA() throws IOException{
                    if(F_tipo == "tipo-logico"){
                        if(auxLex == "true"){
                         try{
-                         buffWriteDSEG.write("\tbyte FFh");
+                         buffWriteDSEG.write("\tbyte 0FFh");
                          buffWriteDSEG.newLine();
                         }catch (IOException E){}
                        }else if(auxLex == "false"){
@@ -1715,7 +1718,22 @@ public static void CA() throws IOException{
                        buffWriteDSEG.newLine();
                        memoria+= 2;
                    }else if(F_tipo == "tipo-string"){
-                       buffWriteDSEG.write("\tbyte "+auxLex+"$");
+                       for(int j = 0; j< auxLex.length(); j++){
+                           if(j == 0){
+                               auxString = auxString + '\'';
+                           }else if(j == (auxLex.length()-1)){
+                               auxString = auxString + '$';
+                           }else{
+                               if(auxLex.charAt(j) == '\''){
+                                   auxString = auxString +' ';
+                               }else{
+                                auxString = auxString + auxLex.charAt(j);
+                               }
+                           }
+                       }
+                       auxString += '\'';
+                       
+                       buffWriteDSEG.write("\tbyte "+auxString+"");
                        buffWriteDSEG.newLine();
                        memoria+= auxLex.length()+1;
                    }
@@ -1884,14 +1902,15 @@ public static void CA() throws IOException{
       // TODO code application logic here
       //path = args[0];
       //path = "C:/Users/lucas/Documents/NetBeansProjects/Compilador/src/compilador/novo_teste.l";
-      //path = "C:/Users/Pedro/Documents/FACULDADE_PEDRO/Compiladores/BACKUP_TP_COMPILA/Compilador/src/compilador/t1.l";
-      //pathDSEG = "C:/Users/Pedro/Documents/FACULDADE_PEDRO/Compiladores/BACKUP_TP_COMPILA/Compilador/src/compilador/DSEG.txt";
-      //pathCSEG = "C:/Users/Pedro/Documents/FACULDADE_PEDRO/Compiladores/BACKUP_TP_COMPILA/Compilador/src/compilador/CSEG.txt";
-      //pathFINAL = "C:/Users/Pedro/Documents/FACULDADE_PEDRO/Compiladores/BACKUP_TP_COMPILA/Compilador/src/compilador/saida.asm";
-      path = "C:/wamp64/www/Compilador_01_2017/src/compilador/t1.l";
+      path = "C:/Users/Pedro/Documents/FACULDADE_PEDRO/Compiladores/BACKUP_TP_COMPILA/Compilador/src/compilador/t1.l";
+      pathDSEG = "DSEG.txt";
+      pathCSEG = "CSEG.txt";
+      pathFINAL = "C:/8086/saida.asm";
+      
+      /*path = "C:/wamp64/www/Compilador_01_2017/src/compilador/t1.l";
       pathDSEG = "C:/wamp64/www/Compilador_01_2017/src/compilador/DSEG.txt";
       pathCSEG = "C:/wamp64/www/Compilador_01_2017/src/compilador/CSEG.txt";
-      pathFINAL = "C:/wamp64/www/Compilador_01_2017/src/compilador/saida.asm";
+      pathFINAL = "C:/wamp64/www/Compilador_01_2017/src/compilador/saida.asm";*/
       erroLinha=0;
 
       buffRead = new BufferedReader(new FileReader(path));
