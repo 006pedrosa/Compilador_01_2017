@@ -18,14 +18,14 @@ public class Compilador {
     public static BufferedWriter buffWriteDSEG, buffWriteCSEG;
     public static String path, pathDSEG, pathCSEG, pathFINAL, linha, token_atual, lex, tipoId;
     //public static AnalisadorLexico analisadorLexico = new AnalisadorLexico();
-    public static int erroLinha, posLinha, declaracao, memoria, memoria_tmp;
+    public static int erroLinha, posLinha, declaracao, memoria, memoria_tmp, contRot;
     public static Map<String, String> tS = new HashMap<String, String>();
     public static Map<String, String> hashTipo = new HashMap<String, String>();
     public static Map<String, String> hashClasse = new HashMap<String, String>();
     public static Map<String, Integer> hashEndereco = new HashMap<String, Integer>();
     
     //enderecos
-    public static int F_end, V_end, Y_end, T_end, EXPS_end, EXP_end, Const_end;
+    public static int F_end, V_end, Y_end, T_end, EXPS_end, EXP_end, Const_end, temp_end;
     
 
     //-----------------------------------------------ANALISADOR LEXICO----------------------
@@ -372,6 +372,7 @@ public class Compilador {
    public static void S() throws IOException{
        memoria_tmp = 0;
        memoria = 4000;
+       contRot = 0;
        //Geracao de codigo - Acao 34
        try{
         buffWriteDSEG.write("dseg SEGMENT PUBLIC");
@@ -395,16 +396,16 @@ public class Compilador {
            DECLARACAO();
        }
        //Geracao de codigo - Acao 35
-       try{
-        buffWriteDSEG.write("dseg ENDS");
-        buffWriteDSEG.newLine();
-       }catch (IOException E){}
-       
        casaToken("main");
        while(token_atual != "end"){
            COMANDO();
        }
        casaToken("end");
+       
+       try{
+        buffWriteDSEG.write("dseg ENDS");
+        buffWriteDSEG.newLine();
+       }catch (IOException E){}
        
        //Geracao de codigo acao 36
        try{
@@ -739,7 +740,9 @@ public static void CA() throws IOException{
 	   String EXP_tipo = ""; //recebe o tipo retornado pelo EXPS
            String EXPS1_tipo = "";
            String auxToken = "";
+           String auxString = "";
            EXP_tipo = EXPS();
+           EXP_end = EXPS_end;
            auxToken = token_atual;
 	   if(token_atual =="<"){
 		   casaToken("<");
@@ -768,9 +771,80 @@ public static void CA() throws IOException{
                        System.out.println("Erro: Tipos incompativeis - Linha: "+erroLinha);
                        System.exit(0);
                    } else {
+                       
                        EXP_tipo = "tipo-logico";
+                       buffWriteDSEG.write("\tbyte ?");
+                       buffWriteDSEG.newLine();
+                       temp_end = memoria;
+                       memoria += 2;
+                       buffWriteCSEG.write("\tmov AX, DS:["+EXP_end+"]");
+                       buffWriteCSEG.newLine();
+                       buffWriteCSEG.write("\tmov BX, DS:["+EXPS_end+"]");
+                       buffWriteCSEG.newLine();
+                       buffWriteCSEG.write("\tcmp AX, BX");
+                       buffWriteCSEG.newLine();
+                       buffWriteCSEG.write("\tje R"+contRot+"");
+                       buffWriteCSEG.newLine();
+                       buffWriteCSEG.write("\tmov CX, 0");
+                       buffWriteCSEG.newLine();
+                       buffWriteCSEG.write("\tjmp R"+(contRot+1)+"");
+                       buffWriteCSEG.newLine();
+                       buffWriteCSEG.write("R"+(contRot)+":");
+                       buffWriteCSEG.newLine();
+                       buffWriteCSEG.write("\tmov CX, 1");
+                       buffWriteCSEG.newLine();
+                       contRot+=1;
+                       
+                       buffWriteCSEG.write("R"+(contRot)+":");
+                       buffWriteCSEG.newLine();
+                       buffWriteCSEG.write("\tmov DS:["+ temp_end +"], CX");
+                       buffWriteCSEG.newLine();
+                       
+                       EXP_end = temp_end;
+                       
                    }
                } else {
+                   if(EXP_tipo == "tipo-string"){
+                       buffWriteDSEG.write("\tbyte ?");
+                       buffWriteDSEG.newLine();
+                       temp_end = memoria;
+                       memoria += 1;
+                       buffWriteCSEG.write("\tmov DI, DS:["+EXP_end+"]");
+                       buffWriteCSEG.newLine();
+                       buffWriteCSEG.write("\tmov SI, DS:["+EXPS_end+"]");
+                       buffWriteCSEG.newLine();
+                       buffWriteCSEG.write("R"+contRot+":");
+                       buffWriteCSEG.newLine();
+                       buffWriteCSEG.write("\tmov AX, DS:[SI]");
+                       buffWriteCSEG.newLine();
+                       buffWriteCSEG.write("\tmov BX, DS:[DI]");
+                       buffWriteCSEG.newLine();
+                       buffWriteCSEG.write("\tcmp AX, BX");
+                       buffWriteCSEG.newLine();
+                       buffWriteCSEG.write("\tjne R"+(contRot+1)+"");
+                       buffWriteCSEG.newLine();
+                       buffWriteCSEG.write("\tcmp AX, $");
+                       buffWriteCSEG.newLine();
+                       buffWriteCSEG.write("\tje R"+contRot+"");
+                       buffWriteCSEG.newLine();
+                       buffWriteCSEG.write("\tmov CX, 1");
+                       buffWriteCSEG.newLine();
+                       buffWriteCSEG.write("\tmov DS:["+temp_end+"], CX");
+                       buffWriteCSEG.newLine();
+                       buffWriteCSEG.write("\tjmp R"+(contRot+2)+"");
+                       buffWriteCSEG.newLine();
+                       buffWriteCSEG.write("R"+(contRot+1)+":");
+                       buffWriteCSEG.newLine();
+                       buffWriteCSEG.write("\tmov CX, 0");
+                       buffWriteCSEG.newLine();
+                       buffWriteCSEG.write("\tmov DS:["+temp_end+"], CX");
+                       buffWriteCSEG.newLine();
+                       buffWriteCSEG.write("R"+(contRot+2)+":");
+                       buffWriteCSEG.newLine();
+                       
+                       EXP_end = temp_end;
+                       contRot+=3;
+                   }
                    EXP_tipo = "tipo-logico";
                }
            }else if(auxToken == "<" || auxToken == ">" || auxToken == "<=" || auxToken == ">=" || auxToken == "!="){
@@ -778,7 +852,47 @@ public static void CA() throws IOException{
                    System.out.println("Erro: Tipos incompativeis - Linha: "+erroLinha);  
                    System.exit(0);
                } else {
-                   EXP_tipo = "tipo-logico";
+                   if(auxToken == "<"){
+                       auxString = "\tjl R"+contRot+"";
+                   }else if(auxToken == "<="){
+                       auxString = "\tjle R"+contRot+"";
+                   }else if(auxToken == ">"){
+                       auxString = "\tjg R"+contRot+"";
+                   }else if(auxToken == ">="){
+                       auxString = "\tjge R"+contRot+"";
+                   }else if(auxToken == "!="){
+                       auxString = "\tjne R"+contRot+"";
+                   }
+                   
+                    buffWriteDSEG.write("\tbyte?");
+                    buffWriteDSEG.newLine();
+                    temp_end = memoria;
+                    memoria += 1;
+                    buffWriteCSEG.write("\tmov AX, DS:["+EXP_end+"]");
+                    buffWriteCSEG.newLine();
+                    buffWriteCSEG.write("\tmov BX, DS:["+EXPS_end+"]");
+                    buffWriteCSEG.newLine();
+                    buffWriteCSEG.write("\tcmp AX, BX");
+                    buffWriteCSEG.newLine();
+                    buffWriteCSEG.write(auxString);
+                    buffWriteCSEG.newLine();
+                    buffWriteCSEG.write("\tmov CX, 0");
+                    buffWriteCSEG.newLine();
+                    buffWriteCSEG.write("\tjmp R"+(contRot+1)+"");
+                    buffWriteCSEG.newLine();
+                    buffWriteCSEG.write("R"+(contRot)+":");
+                    buffWriteCSEG.newLine();
+                    buffWriteCSEG.write("\tmov CX, 1");
+                    buffWriteCSEG.newLine();
+                    contRot+=1;
+                       
+                    buffWriteCSEG.write("R"+(contRot)+":");
+                    buffWriteCSEG.newLine();
+                    buffWriteCSEG.write("\tmov DS:["+ temp_end +"], CX");
+                    buffWriteCSEG.newLine();
+                       
+                    EXP_end = temp_end;
+                    EXP_tipo = "tipo-logico";
                }
            }
            return EXP_tipo;
@@ -789,6 +903,7 @@ public static void CA() throws IOException{
            String T1_tipo = "";
            String auxToken = "";
 	   if(token_atual == "+"){
+                   auxToken = token_atual;
 		   casaToken("+");
 		   EXPS_tipo = T();
                    if(EXPS_tipo == "tipo-string" || EXPS_tipo == "tipo-logico"){
@@ -798,6 +913,7 @@ public static void CA() throws IOException{
                        EXPS_tipo = "tipo-inteiro";
                    }
 	   }else if(token_atual == "-"){
+                   auxToken = token_atual;
 		   casaToken("-");
 		   EXPS_tipo = T();
                    if(EXPS_tipo == "tipo-string" || EXPS_tipo == "tipo-logico"){
@@ -808,6 +924,19 @@ public static void CA() throws IOException{
                    }
 	   }else{
 		   EXPS_tipo = T();
+                   EXPS_end = T_end;
+                   if(auxToken == "-"){
+                       buffWriteCSEG.write("\tmov AX, DS:["+EXPS_end+"]");
+                       buffWriteCSEG.newLine();
+                       buffWriteCSEG.write("\tmov BX, AX");
+                       buffWriteCSEG.newLine();
+                       buffWriteCSEG.write("\tsub AX, BX");
+                       buffWriteCSEG.newLine();
+                       buffWriteCSEG.write("\tsub AX, BX");
+                       buffWriteCSEG.newLine();
+                       buffWriteCSEG.write("\tmov DS:["+EXPS_end+"], AX");
+                       buffWriteCSEG.newLine();
+                   }
 		   while(token_atual == "+" || token_atual == "-" || token_atual == "or"){
                            auxToken = token_atual;
 			   if(token_atual == "+"){
@@ -824,6 +953,15 @@ public static void CA() throws IOException{
                                if(EXPS_tipo != "tipo-logico" || T1_tipo != "tipo-logico"){
                                     System.out.println("Erro: Tipos incompativeis - Linhas: "+erroLinha);
                                     System.exit(0);
+                               }else{
+                                    buffWriteCSEG.write("\tmov AL, DS:["+EXPS_end+"]");
+                                    buffWriteCSEG.newLine();
+                                    buffWriteCSEG.write("\tmov BL, DS:["+T_end+"]");
+                                    buffWriteCSEG.newLine();
+                                    buffWriteCSEG.write("\tor AL, BL");
+                                    buffWriteCSEG.newLine();
+                                    buffWriteCSEG.write("\tmov DS:["+EXPS_end+"], AL");
+                                    buffWriteCSEG.newLine();
                                }
                            }else if(auxToken == "+" || auxToken == "-"){
                                if(EXPS_tipo == "tipo-logico" || T1_tipo == "tipo-logico"){
@@ -836,12 +974,68 @@ public static void CA() throws IOException{
                                             System.exit(0);
                                         } else {
                                             EXPS_tipo = "tipo-inteiro";
+                                            buffWriteCSEG.write("\tmov AX, DS:["+EXPS_end+"]");
+                                            buffWriteCSEG.newLine();
+                                            buffWriteCSEG.write("\tmov BX, DS:["+T_end+"]");
+                                            buffWriteCSEG.newLine();
+                                            buffWriteCSEG.write("\tsub AX, BX");
+                                            buffWriteCSEG.newLine(); 
+                                            buffWriteCSEG.write("\tmov DS:["+EXPS_end+"], AX");
+                                            buffWriteCSEG.newLine();                                            
                                         }
                                     } else {
                                         if(EXPS_tipo == "tipo-string" || T1_tipo == "tipo-string"){
                                             EXPS_tipo = "tipo-string";
+                                            
+                                            buffWriteCSEG.write("\tmov DI, "+EXPS_end+"");
+                                            buffWriteCSEG.newLine();
+                                            buffWriteCSEG.write("\tmov SI, "+T_end+"");
+                                            buffWriteCSEG.newLine();
+                                            buffWriteCSEG.write("R"+contRot+":");
+                                            buffWriteCSEG.write("\tmov AX, DS[DI]");
+                                            buffWriteCSEG.newLine();
+                                            buffWriteCSEG.write("\tcmp AX, $");
+                                            buffWriteCSEG.newLine();
+                                            buffWriteCSEG.write("\tje R"+(contRot+1)+"");
+                                            buffWriteCSEG.newLine();
+                                            buffWriteCSEG.write("\tadd DI, 1");
+                                            buffWriteCSEG.newLine();
+                                            buffWriteCSEG.write("\tjmp R" + contRot +"");
+                                            buffWriteCSEG.newLine();
+                                            
+                                            contRot+=1;
+                                            
+                                            buffWriteCSEG.write("R"+contRot+":");
+                                            buffWriteCSEG.newLine();
+                                            buffWriteCSEG.write("\tmov BX, DS[SI]");
+                                            buffWriteCSEG.newLine();
+                                            buffWriteCSEG.write("\tmov DS[DI], BX");
+                                            buffWriteCSEG.newLine();
+                                            buffWriteCSEG.write("\tadd DI, 1");
+                                            buffWriteCSEG.newLine();
+                                            buffWriteCSEG.write("\tadd SI, 1");
+                                            buffWriteCSEG.newLine();
+                                            buffWriteCSEG.write("\tcmp BX, $");
+                                            buffWriteCSEG.newLine();
+                                            buffWriteCSEG.write("\tjne R"+ contRot +"");
+                                            buffWriteCSEG.newLine();
+                                            buffWriteCSEG.write("\tBX, DS[SI]");
+                                            buffWriteCSEG.newLine();
+                                            buffWriteCSEG.write("\tDS[DI], BX");
+                                            buffWriteCSEG.newLine();
+                                            
+                                            contRot+=1;
+                                            
                                         } else {
                                             EXPS_tipo = "tipo-inteiro";
+                                            buffWriteCSEG.write("\tmov AX, DS:["+EXPS_end+"]");
+                                            buffWriteCSEG.newLine();
+                                            buffWriteCSEG.write("\tmov BX, DS:["+T_end+"]");
+                                            buffWriteCSEG.newLine();
+                                            buffWriteCSEG.write("\tadd AX, BX");
+                                            buffWriteCSEG.newLine(); 
+                                            buffWriteCSEG.write("\tmov DS:["+EXPS_end+"], AX");
+                                            buffWriteCSEG.newLine();
                                         }
                                     }
                                }
@@ -877,7 +1071,14 @@ public static void CA() throws IOException{
                            System.out.println("Erro: Tipos incompativeis - Linha: "+erroLinha);
                            System.exit(0);
                        } else {
-                           
+                               buffWriteCSEG.write("\tmov AL, DS:["+T_end+"]");
+                               buffWriteCSEG.newLine();
+                               buffWriteCSEG.write("\tmov BL, DS:["+F_end+"]");
+                               buffWriteCSEG.newLine();
+                               buffWriteCSEG.write("\tand AL, BL");
+                               buffWriteCSEG.newLine();
+                               buffWriteCSEG.write("\tmov DS:["+T_end+"], AL");
+                               buffWriteCSEG.newLine();
                        }
                    }else if(auxToken == "*" || auxToken == "/"){
                        if(T_tipo != "tipo-byte" || T_tipo != "tipo-inteiro" || F1_tipo != "tipo-byte" || F1_tipo != "tipo-inteiro"){
@@ -887,26 +1088,26 @@ public static void CA() throws IOException{
                            if(auxToken == "/"){
                                T_tipo = "tipo-inteiro";
                                //Geracao de Codigo Acao 13
-                               buffWriteCSEG.write("mov AX, DS:["+T_end+"]");
+                               buffWriteCSEG.write("\tmov AX, DS:["+T_end+"]");
                                buffWriteCSEG.newLine();
-                               buffWriteCSEG.write("mov BX, DS:["+F_end+"]");
+                               buffWriteCSEG.write("\tmov BX, DS:["+F_end+"]");
                                buffWriteCSEG.newLine();
-                               buffWriteCSEG.write("div BX");
+                               buffWriteCSEG.write("\tdiv BX");
                                buffWriteCSEG.newLine();
-                               buffWriteCSEG.write("mov DS:["+T_end+"], BX");
+                               buffWriteCSEG.write("\tmov DS:["+T_end+"], BX");
                                buffWriteCSEG.newLine();
                            } else {
                                if(T_tipo != "tipo-byte" || F1_tipo != "tipo-byte"){
                                    T_tipo = "tipo-inteiro";
                                } 
                                //Geracao de Codigo Acao 13
-                               buffWriteCSEG.write("mov AX, DS:["+T_end+"]");
+                               buffWriteCSEG.write("\tmov AX, DS:["+T_end+"]");
                                buffWriteCSEG.newLine();
-                               buffWriteCSEG.write("mov BX, DS:["+F_end+"]");
+                               buffWriteCSEG.write("\tmov BX, DS:["+F_end+"]");
                                buffWriteCSEG.newLine();
-                               buffWriteCSEG.write("mul BX");
+                               buffWriteCSEG.write("\tmul BX");
                                buffWriteCSEG.newLine();
-                               buffWriteCSEG.write("mov DS:["+T_end+"], BX");
+                               buffWriteCSEG.write("\tmov DS:["+T_end+"], BX");
                                buffWriteCSEG.newLine();
                            }
                        }   
@@ -1105,9 +1306,9 @@ public static void CA() throws IOException{
    
    //Funcao que converte o modelo do hexa da Linguagem L para MASM
    public static String convertHexa(String hexa){
-       String result = "";
+       String result = hexa;
        
-       if(hexa.length()== 4){
+       if(hexa.length()== 4 && hexa.charAt(0) == '0'){
            result = hexa.charAt(2) + hexa.charAt(3) + "h";
        }
        
@@ -1125,12 +1326,13 @@ public static void CA() throws IOException{
         // TODO code application logic here
        //path = args[0];
       //path = "C:/Users/lucas/Documents/NetBeansProjects/Compilador/src/compilador/novo_teste.l";
-      //path = "C:/Users/Pedro/Documents/FACULDADE_PEDRO/Compiladores/BACKUP_TP_COMPILA/Compilador/src/compilador/t1.l";
-      //pathDSEG = "C:/Users/Pedro/Documents/FACULDADE_PEDRO/Compiladores/BACKUP_TP_COMPILA/Compilador/src/compilador/";
+      path = "C:/Users/Pedro/Documents/FACULDADE_PEDRO/Compiladores/BACKUP_TP_COMPILA/Compilador/src/compilador/t1.l";
+      pathDSEG = "C:/Users/Pedro/Documents/FACULDADE_PEDRO/Compiladores/BACKUP_TP_COMPILA/Compilador/src/compilador/DSEG.txt";
+      pathCSEG = "C:/Users/Pedro/Documents/FACULDADE_PEDRO/Compiladores/BACKUP_TP_COMPILA/Compilador/src/compilador/CSEG.txt";
       
-      path = "C:/wamp64/www/Compilador_01_2017/src/compilador/t1.l";
-      pathDSEG = "C:/wamp64/www/Compilador_01_2017/src/compilador/DSEG.txt";
-      pathCSEG = "C:/wamp64/www/Compilador_01_2017/src/compilador/CSEG.txt";
+      //path = "C:/wamp64/www/Compilador_01_2017/src/compilador/t1.l";
+      //pathDSEG = "C:/wamp64/www/Compilador_01_2017/src/compilador/DSEG.txt";
+      //pathCSEG = "C:/wamp64/www/Compilador_01_2017/src/compilador/CSEG.txt";
       erroLinha=0;
 
       buffRead = new BufferedReader(new FileReader(path));

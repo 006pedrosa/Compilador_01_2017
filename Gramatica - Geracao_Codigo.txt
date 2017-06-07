@@ -58,7 +58,7 @@ VALOR-> const(32) | true(33) | false(33)
 	ESQUEMA DE TRADUÇÃO
 
 -------------------------------FUNCAO TIPO -------------------------------
-1 -> TIPO.tipo = tipo-inteiro
+1 ->TIPO.tipo = tipo-inteiro
 2-> TIPO.tipo = tipo-byte
 3-> TIPO.tipo = tipo-string
 4-> TIPO.tipo = tipo-logico
@@ -95,7 +95,11 @@ VALOR-> const(32) | true(33) | false(33)
 	if(F1.tipo != tipo-logico || F2.tipo != tipo-logico)
 		erro(tipos incompativeis)
 	else
-		T.tipo = tipo-logico
+		mov AL, DS:[T_end]
+                mov BL, DS:[F_end]
+		and AL, BL
+		mov DS:[T_END], AL
+		
       }else if (auxiliarToken == "*" || auxiliarToken == "/"){
 	  if(F1.tipo != tipo-byte || F1.tipo != tipo-inteiro || F2.tipo != tipo-byte || F2.tipo != tipo-inteiro)
 		erro(tipos incompativeis)
@@ -126,14 +130,22 @@ VALOR-> const(32) | true(33) | false(33)
 14-> if(lex == "+" || lex == "-")
 	auxiliarToken = "lex"
 
-15-> EXPS.tipo = t1.tipo
+15-> EXPS.end = T.end
+	if(lex == '-'){
+
+	}
 
 16-> if(auxiliarToken == "-"){
 		if(EXPS.tipo == "tipo-string" || EXPS.tipo = "tipo-logico" )
 			erro(tipos incompativeis)
 		else
-			T1.tipo = "tipo-inteiro"
-     }else if (auxiliarToken == "+"){
+			mov AX, DS:[EXPS.end]
+			mov BX, AX
+			sub AX, BX
+			sub AX, BX
+			mov DS:[EXP.end], AX
+     
+	}else if (auxiliarToken == "+"){
 		if(EXPS.tipo == "tipo-logico")
 			erro(tipos incompativeis)
 	}
@@ -142,7 +154,10 @@ VALOR-> const(32) | true(33) | false(33)
 	if(EXPS.tipo != tipo-logico || T1.tipo != tipo-logico)
 		erro(tipos incompativeis)
 	else{
-		EXPS.tipo = "tipo-logico"
+		mov AL, DS:[EXP.end]
+		mov BL, DS:[T1.end]
+		or AL, BL
+		mov DS:[EXP.end], AL
 	}
      }else if(auxiliarToken == "+" || auxiliarToken == "-"){
 	if(EXPS.tipo == "tipo-logico" || T1.tipo == "tipo-logico")
@@ -152,19 +167,45 @@ VALOR-> const(32) | true(33) | false(33)
 			if((EXPS.tipo == "tipo-string" || T1.tipo == "tipo-string"))
 				erro(tipos incompativeis)
 			else
-				EXPS.tipo = "tipo-inteiro"
+				mov AX, DS:[EXP.end]
+				mov BX, DS:[T1.end]
+				sub AX, BX
+				mov DS:[EXP.end], AX
 		}else{
 			if(EXPS.tipo == "tipo-string" || T1.tipo == "tipo-string")
 				EXPS.tipo = "tipo-string"
+				mov DI, EXP.end
+				mov SI, T1.end
+			RN:
+				mov AX, DS[DI]
+				cmp AX, $
+				je RN+1
+				add DI, 1
+				jmp RN
+			RN+1: 
+				mov BX, DS[SI]
+				mov DS[DI], BX
+				add DI, 1
+				add SI, 1
+				cmp BX, $
+				jne RN+1
+				
+				mov BX, DS[SI]
+				mov DS[DI], BX
+						
 			else
-				EXPS.tipo = "tipo-inteiro"	
+				EXPS.tipo = "tipo-inteiro"
+				mov AX, DS:[EXP.end]
+				mov BX, DS:[T1.end]
+				add AX, BX
+				mov DS:[EXP.end], AX	
 		}
 	}else{
 		EXPS.tipo = T1.tipo
 	}
 ========================================================================
 				FUNCAO EXP
-18-> EXP.tipo = EXPS.tipo
+18-> EXP.end = EXPS.end
 
 19-> auxiliarToken = lex
 
@@ -173,9 +214,42 @@ VALOR-> const(32) | true(33) | false(33)
 			if(EXP.tipo == "tipo-string" || EXP.tipo == "tipo-logico" || EXPS1.tipo == "tipo-string" || EXPS1.tipo == "tipo-logico")
 				erro(tipos incompativeis)
 			else
-				EXP.tipo = "tipo-logico"
+				EXP.end = NTemp;
+				mov AX, DS:[EXP.end]
+				mov BX, DS:[EXPS.end]
+				cmp AX, BX
+				je RN
+				mov CX, 0
+				jmp RN+1
+			RN:
+				mov CX, 1
+			RN+1:
+				mov DS:[EXP.end], CX	
 		else
-				EXP.tipo = "tipo-logico"
+			if(EXP.tipo == "tipo-string"){
+
+			}else{
+			  	temp.end = NTemp;
+				mov DI, EXP.end
+				mov SI, EXPS.end
+			  RN:
+				mov AX, DS:[SI]
+				mov BX, DS:[DI]
+				cmp AX, BX
+				jne RN+1
+				cmp AX, $
+				je RN
+				mov CX, 1
+				mov DS:[temp.end]
+				jmp RN+2
+			RN+1:
+				mov CX, 0
+				mov DS:[temp.end]
+			RN+2:
+				
+				
+			}
+
     else if(auxiliarToken == "<" || auxiliarToken = ">" || auxiliarToken == "<=" || auxiliarToken == ">=" || auxiliarToken == "!="){
 	if(EXP.tipo == "tipo-string" || EXPS1.tipo == "tipo-string")
 		erro(tipos incompativeis)
@@ -186,6 +260,73 @@ VALOR-> const(32) | true(33) | false(33)
 			if(EXP.tipo == "tipo-string" || EXP.tipo == "tipo-logico" || EXPS1.tipo == "tipo-string" || EXPS1.tipo == "tipo-logico")
 				erro(tipos incompativeis)
 			else
+				if(auxiliarToken == "<"){
+					EXP.end = NTemp;
+					mov AX, DS:[EXP.end]
+					mov BX, DS:[EXPS.end]
+					cmp AX, BX
+					jl RN
+					mov CX, 0
+					jmp RN+1
+				RN:
+					mov CX, 1
+				RN+1:
+					mov DS:[EXP.end], CX
+	
+				}else if(auxiliarToken == "<="){
+					EXP.end = NTemp;
+					mov AX, DS:[EXP.end]
+					mov BX, DS:[EXPS.end]
+					cmp AX, BX
+					jle RN
+					mov CX, 0
+					jmp RN+1
+				RN:
+					mov CX, 1
+				RN+1:
+					mov DS:[EXP.end], CX
+				
+				}
+				}else if(auxiliarToken == ">"){
+					EXP.end = NTemp;
+					mov AX, DS:[EXP.end]
+					mov BX, DS:[EXPS.end]
+					cmp AX, BX
+					jg RN
+					mov CX, 0
+					jmp RN+1
+				RN:
+					mov CX, 1
+				RN+1:
+					mov DS:[EXP.end], CX
+				
+				}else if(auxiliarToken == ">="){
+					EXP.end = NTemp;
+					mov AX, DS:[EXP.end]
+					mov BX, DS:[EXPS.end]
+					cmp AX, BX
+					jge RN
+					mov CX, 0
+					jmp RN+1
+				RN:
+					mov CX, 1
+				RN+1:
+					mov DS:[EXP.end], CX
+				
+				}else if(auxiliarToken == "!="){
+					EXP.end = NTemp;
+					mov AX, DS:[EXP.end]
+					mov BX, DS:[EXPS.end]
+					cmp AX, BX
+					jne RN
+					mov CX, 0
+					jmp RN+1
+				RN:
+					mov CX, 1
+				RN+1:
+					mov DS:[EXP.end], CX
+				
+				}
 				EXP.tipo = "tipo-logico"
 	}
 =================================================================
