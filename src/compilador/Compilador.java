@@ -383,7 +383,7 @@ public class Compilador {
         
         buffWriteCSEG.write("cseg SEGMENT PUBLIC");
         buffWriteCSEG.newLine();
-        buffWriteCSEG.write("ASSUME CS:cseg, DS,dseg");
+        buffWriteCSEG.write("ASSUME CS:cseg, DS:dseg");
         buffWriteCSEG.newLine();
         buffWriteCSEG.write("strt:");
         buffWriteCSEG.newLine();
@@ -1418,7 +1418,7 @@ public static void CA() throws IOException{
                        auxString = "\tjne R"+contRot+"";
                    }
                    
-                    buffWriteDSEG.write("\tbyte?");
+                    buffWriteDSEG.write("\tbyte ?");
                     buffWriteDSEG.newLine();
                     temp_end = memoria;
                     memoria += 1;
