@@ -25,7 +25,7 @@ public class Compilador {
     public static Map<String, Integer> hashEndereco = new HashMap<String, Integer>();
     
     //enderecos
-    public static int F_end, V_end, Y_end, T_end, EXPS_end, EXP_end, Const_end, temp_end, id_end, DC_end, CA_end;
+    public static int F_end, V_end, Y_end, T_end, EXPS_end, EXP_end, Const_end, temp_end, id_end, DC_end, CA_end, CT_end;
     
 
     //-----------------------------------------------ANALISADOR LEXICO----------------------
@@ -732,7 +732,7 @@ public static void CA() throws IOException{
            
            buffWriteCSEG.write("\tmov AX, DS:["+exp_aux_end+"]");
            buffWriteCSEG.newLine();
-           buffWriteCSEG.write("\tcmp AX, 1");
+           buffWriteCSEG.write("\tcmp AX, FFh");
            buffWriteCSEG.newLine();
            buffWriteCSEG.write("\tjmp R"+auxCont+"");
            buffWriteCSEG.newLine();
@@ -761,6 +761,13 @@ public static void CA() throws IOException{
                 
                 if(CT_tipo != "tipo-logico"){
                     System.out.println("Erro: Tipo incompativel - Linha: "+erroLinha);
+                }else{
+                    buffWriteCSEG.write("\tmov AX, DS:["+EXP_end+"]");
+                    buffWriteCSEG.newLine();
+                    buffWriteCSEG.write("\tcmp AX, FFh");
+                    buffWriteCSEG.newLine();
+                    buffWriteCSEG.write("\tjne R"+contRot+"");
+                    buffWriteCSEG.newLine();                             
                 }
 		casaToken(")");
 		casaToken("then");
@@ -768,11 +775,19 @@ public static void CA() throws IOException{
    }
    //Metodo CT_A
    public static void CT_A() throws IOException{
+           int auxCont = contRot;
+           contRot+=2;
 	   if(token_atual =="begin"){
 		   casaToken("begin");
 		   while(token_atual != "end"){
 			   COMANDO();
 		   }
+                   
+                   buffWriteCSEG.write("\tjmp R"+(auxCont+1)+"");
+                   buffWriteCSEG.newLine();
+                   buffWriteCSEG.write("R"+auxCont+":");
+                   buffWriteCSEG.newLine();
+                   
 		   casaToken("end");
 		   if(token_atual == "else"){
 			   casaToken("else");
@@ -781,13 +796,23 @@ public static void CA() throws IOException{
 				   COMANDO();
 			   }
                            casaToken("end");
+                           buffWriteCSEG.write("R"+(auxCont+1)+":");
+                           buffWriteCSEG.newLine();
 		   }
 	   }else{
 		   COMANDO();
+                   
+                   buffWriteCSEG.write("\tjmp R"+(auxCont+1)+"");
+                   buffWriteCSEG.newLine();
+                   buffWriteCSEG.write("R"+auxCont+":");
+                   buffWriteCSEG.newLine();
+                   
 		   if(token_atual =="else"){
 			   casaToken("else");
 			   COMANDO();
 		   }
+                   buffWriteCSEG.write("R"+(auxCont+1)+":");
+                   buffWriteCSEG.newLine();
 	   }
    }
    //Metodo CN
@@ -908,13 +933,13 @@ public static void CA() throws IOException{
                        buffWriteCSEG.newLine();
                        buffWriteCSEG.write("\tje R"+contRot+"");
                        buffWriteCSEG.newLine();
-                       buffWriteCSEG.write("\tmov CX, 0");
+                       buffWriteCSEG.write("\tmov CX, 0h");
                        buffWriteCSEG.newLine();
                        buffWriteCSEG.write("\tjmp R"+(contRot+1)+"");
                        buffWriteCSEG.newLine();
                        buffWriteCSEG.write("R"+(contRot)+":");
                        buffWriteCSEG.newLine();
-                       buffWriteCSEG.write("\tmov CX, 1");
+                       buffWriteCSEG.write("\tmov CX, FFh");
                        buffWriteCSEG.newLine();
                        contRot+=1;
                        
@@ -950,7 +975,7 @@ public static void CA() throws IOException{
                        buffWriteCSEG.newLine();
                        buffWriteCSEG.write("\tje R"+contRot+"");
                        buffWriteCSEG.newLine();
-                       buffWriteCSEG.write("\tmov CX, 1");
+                       buffWriteCSEG.write("\tmov CX, FFh");
                        buffWriteCSEG.newLine();
                        buffWriteCSEG.write("\tmov DS:["+temp_end+"], CX");
                        buffWriteCSEG.newLine();
@@ -958,7 +983,7 @@ public static void CA() throws IOException{
                        buffWriteCSEG.newLine();
                        buffWriteCSEG.write("R"+(contRot+1)+":");
                        buffWriteCSEG.newLine();
-                       buffWriteCSEG.write("\tmov CX, 0");
+                       buffWriteCSEG.write("\tmov CX, 0h");
                        buffWriteCSEG.newLine();
                        buffWriteCSEG.write("\tmov DS:["+temp_end+"], CX");
                        buffWriteCSEG.newLine();
@@ -999,13 +1024,13 @@ public static void CA() throws IOException{
                     buffWriteCSEG.newLine();
                     buffWriteCSEG.write(auxString);
                     buffWriteCSEG.newLine();
-                    buffWriteCSEG.write("\tmov CX, 0");
+                    buffWriteCSEG.write("\tmov CX, 0h");
                     buffWriteCSEG.newLine();
                     buffWriteCSEG.write("\tjmp R"+(contRot+1)+"");
                     buffWriteCSEG.newLine();
                     buffWriteCSEG.write("R"+(contRot)+":");
                     buffWriteCSEG.newLine();
-                    buffWriteCSEG.write("\tmov CX, 1");
+                    buffWriteCSEG.write("\tmov CX, FFh");
                     buffWriteCSEG.newLine();
                     contRot+=1;
                        

@@ -31,11 +31,11 @@ TIPO -> integer(1) | byte(2) | string(3) | boolean(4) [TERMINADO]
 
 CR -> (37)while'('EXP')'(27) X(38) [TERMINADO]
 
-X ->  COMANDO | begin {COMANDO} end
+X ->  COMANDO | begin {COMANDO} end [TERMINADO]
 
-CT -> if'('EXP')'(27) then CT_A
+CT -> if'('EXP')'(27) then CT_A [TERMINADO]
 
-CT_A -> COMANDO [else COMANDO]| begin {COMANDO} end [else begin {COMANDO} end]
+CT_A -> COMANDO (39)[else COMANDO](40)| begin {COMANDO} end (39)[else begin {COMANDO} end](40)[TERMINADO]
 
 CN -> ';'
 
@@ -410,6 +410,11 @@ VALOR-> const(32) | true(33) | false(33) [TERMINADO]
 
 27-> if(EXP.tipo != "tipo-logico")
 	erro(tipos incompativeis)
+     else{
+		mov AX, DS:[EXP.end]
+		cmp AX, 1
+		jne RN
+	}
 
 28-> if(id.tipo != const.tipo)
 	erro(tipos incompativeis)
@@ -454,3 +459,10 @@ VALOR-> const(32) | true(33) | false(33) [TERMINADO]
 	mov AX, DS:[EXP_end]
 	cmp AX, 1
 	jne RN
+
+39->
+	jmp RN+1
+      RN:
+
+40->
+     RN+1:
