@@ -9,6 +9,7 @@ import static compilador.AnalisadorLexico.lex;
 import static compilador.AnalisadorLexico.tS;
 import java.io.*;
 import java.lang.*;
+import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -833,28 +834,6 @@ public static void CA() throws IOException{
         casaToken("readln");
         casaToken("(");
         
-        buffWriteCSEG.write("\tmov  DX, "+buffer_end+"");
-        buffWriteCSEG.newLine();
-        buffWriteCSEG.write("\tmov  AL, 0FFh");
-        buffWriteCSEG.newLine();
-        buffWriteCSEG.write("\tmov  DS:["+buffer_end+"], AL");
-        buffWriteCSEG.newLine();
-        buffWriteCSEG.write("\tmov  AH, 0Ah");
-        buffWriteCSEG.newLine();
-        buffWriteCSEG.write("\tint  21h");
-        buffWriteCSEG.newLine();
-        buffWriteCSEG.write("\tmov  AH, 02h");
-        buffWriteCSEG.newLine();
-        buffWriteCSEG.write("\tmov  DL, 0Dh");
-        buffWriteCSEG.newLine();
-        buffWriteCSEG.write("\tint  21h");
-        buffWriteCSEG.newLine();
-        buffWriteCSEG.write("\tmov  DL, 0Ah");
-        buffWriteCSEG.newLine();
-        buffWriteCSEG.write("\tint  21h");
-        buffWriteCSEG.newLine();
-        
-         
         auxLex = lex;
         casaToken("id");
         id_tipo = getTipo(auxLex);
@@ -997,7 +976,7 @@ public static void CA() throws IOException{
 
                         buffWriteCSEG.write("\tmov cx, 0");
                         buffWriteCSEG.newLine();
-                        buffWriteCSEG.write("\tcmp ax,0");
+                        buffWriteCSEG.write("\tcmp ax, 0");
                         buffWriteCSEG.newLine();
                         buffWriteCSEG.write("\tjge R"+contRot); 
                         buffWriteCSEG.newLine();
@@ -1030,11 +1009,11 @@ public static void CA() throws IOException{
 
                         buffWriteCSEG.write("R"+(contRot+2)+":");
                         buffWriteCSEG.newLine();
-                        buffWriteCSEG.write("\tpop dx ");
+                        buffWriteCSEG.write("\tpop dx");
                         buffWriteCSEG.newLine();
                         buffWriteCSEG.write("\tadd dx, 30h");
                         buffWriteCSEG.newLine();
-                        buffWriteCSEG.write("\tmov ds:[di],dl");
+                        buffWriteCSEG.write("\tmov ds:[di], dl");
                         buffWriteCSEG.newLine();
                         buffWriteCSEG.write("\tadd di, 1");
                         buffWriteCSEG.newLine();
@@ -1056,7 +1035,7 @@ public static void CA() throws IOException{
                         buffWriteCSEG.newLine();
                         buffWriteCSEG.write("\tint 21h");
                         buffWriteCSEG.newLine();
-                        contRot+=2;
+                        contRot+=3;
            
                    }
 		   while(token_atual != ")"){
@@ -1130,7 +1109,7 @@ public static void CA() throws IOException{
                             buffWriteCSEG.newLine();
                             buffWriteCSEG.write("\tint 21h");
                             buffWriteCSEG.newLine();
-                            contRot+=2;
+                            contRot+=3;
            
                         }
 		   }
@@ -1218,7 +1197,7 @@ public static void CA() throws IOException{
                             buffWriteCSEG.newLine();
                             buffWriteCSEG.write("\tint  21h");
                             buffWriteCSEG.newLine();
-                            contRot+=2;
+                            contRot+=3;
            
                         }
 		   while(token_atual != ")"){
@@ -1303,7 +1282,7 @@ public static void CA() throws IOException{
                             buffWriteCSEG.write("\tint  21h");
                             buffWriteCSEG.newLine();
                             
-                            contRot+=2;
+                            contRot+=3;
                         }
 		   }
 		   casaToken(")");
@@ -1368,7 +1347,7 @@ public static void CA() throws IOException{
                        buffWriteCSEG.newLine();
                        buffWriteCSEG.write("\tmov CX, FFh");
                        buffWriteCSEG.newLine();
-                       contRot+=1;
+                       contRot+=2;
                        
                        buffWriteCSEG.write("R"+(contRot)+":");
                        buffWriteCSEG.newLine();
@@ -1459,7 +1438,8 @@ public static void CA() throws IOException{
                     buffWriteCSEG.newLine();
                     buffWriteCSEG.write("\tmov CX, FFh");
                     buffWriteCSEG.newLine();
-                    contRot+=1;
+                    
+                    contRot+=2;
                        
                     buffWriteCSEG.write("R"+(contRot)+":");
                     buffWriteCSEG.newLine();
@@ -1944,6 +1924,7 @@ public static void CA() throws IOException{
       
       buffWriteDSEG.close();
       buffWriteCSEG.close();
+      
       buffWriteFinal.close();
       
       System.out.println("COMPILADO COM SUCESSO");

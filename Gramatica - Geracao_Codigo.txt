@@ -416,11 +416,141 @@ VALOR-> const(32) | true(33) | false(33) [TERMINADO]
 		jne RN
 	}
 
-28-> if(id.tipo != const.tipo)
-	erro(tipos incompativeis)
+28-> 
+   mov  DX, buffer_end
+   mov  AL, 0FFh
+   mov  DS:[buffer_end], AL
+   mov  AH, 0Ah
+   int  21h
+   mov  AH, 02h
+   mov  DL, 0Dh
+   int  21h
+   mov  DL, 0Ah
+   int  21h
+        
+   if(id.tipo != "tipo-string"){
+	   mov DI, buffer_end+2
+	   mov AX, 0
+	   mov CX, 10
+	   mov DX, 1
+	   mov BH, 0
+	   mov BL, DS:[DI]
+	   cmp BX, 2Dh
+	   jne RN
+	   mov DX, -1
+	   add DI, -1
+	   mov BL, DS:[DI]
+	RN:
+	   push DX
+	   mov DX, 0
+	RN+1:
+	   cmp BX, 0Dh
+	   je RN+2
+	   imul CX
+	   add BX, -48
+	   add AX, BX
+	   add DI, 1
+	   mov BH, 0
+	   mov BL, DS:[DI]
+	   jmp RN+1
+	RN+2:
+	   pop CX
+	   imul CX
+            
+mov DS:[id_end], AX
+} else {
+	   mov DI, id_end
+	   mov SI, "+buffer_end
+	RN:
+	   mov AX, DS:[SI]
+	   mov DS:["+id_end+"], AX
+	   add DI, 1
+	   add SI, 1
+	   cmp AX, $
+	   je RN+1
+	   jmp RN
+	RN+1:
+}
 
-29-> if(EXP.tipo == "tipo-logico")
-	erro(tipos incompativeis)
+29-> 
+if(lex == "write){
+	mov di, EXP_end
+	mov cx, 0
+	cmp ax, 0
+	jge RN 
+	mov bl, 2Dh
+	mov ds:[di], bl
+	add di, 1
+	neg ax
+RN:
+	mov bx, 10
+RN+1:
+	add cx, 1
+	mov dx, 0
+	idiv bx
+	push dx
+	cmp ax, 0
+	jne RN+1
+
+RN+2:
+	pop dx
+	add dx, 30h;
+	mov ds:[di], dl
+	add di, 1
+	add cx, -1
+	cmp cx, 0
+	jne RN+2
+
+	mov dl, 024h
+	mov ds:[di], dl
+
+	mov dx, EXP_end
+	mov ah, 09h
+	int 21h
+
+} else if(writeln){
+
+	mov di, EXP_end
+	mov cx, 0
+	cmp ax, 0
+	jge RN 
+	mov bl, 2Dh
+	mov ds:[di], bl
+	add di, 1
+	neg ax
+RN:
+	mov bx, 10
+RN+1:
+	add cx, 1
+	mov dx, 0
+	idiv bx
+	push dx
+	cmp ax, 0
+	jne RN+1
+
+RN+2:
+	pop dx
+	add dx, 30h;
+	mov ds:[di], dl
+	add di, 1
+	add cx, -1
+	cmp cx, 0
+	jne RN+2
+
+	mov dl, 024h
+	mov ds:[di], dl
+
+	mov dx, EXP_end
+	mov ah, 09h
+	int 21h
+
+	mov dl, 024h 
+	mov ds:[di], dl
+
+	mov dx, EXP_end
+	mov ah, 09h
+	int 21h
+}
 
 30->CA_end = getEnd(lex)
 

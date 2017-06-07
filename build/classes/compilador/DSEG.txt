@@ -5,7 +5,7 @@ dseg SEGMENT PUBLIC
 	byte ?
 	byte 10
 	byte 'Digite seu nome: '$
-	 byte 256 DUP(?)
+	byte 256 DUP(?)
 	byte 0
 	byte 'Ola' '$
 	byte 1
