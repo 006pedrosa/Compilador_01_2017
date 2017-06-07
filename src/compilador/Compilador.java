@@ -14,8 +14,8 @@ import java.util.Map;
 
 public class Compilador {
 
-    public static BufferedReader buffRead;
-    public static BufferedWriter buffWriteDSEG, buffWriteCSEG;
+    public static BufferedReader buffRead, buffReadDSEG, buffReadCSEG;
+    public static BufferedWriter buffWriteDSEG, buffWriteCSEG, buffWriteFinal;
     public static String path, pathDSEG, pathCSEG, pathFINAL, linha, token_atual, lex, tipoId, aux_lex;
     //public static AnalisadorLexico analisadorLexico = new AnalisadorLexico();
     public static int erroLinha, posLinha, declaracao, memoria, memoria_tmp, contRot;
@@ -554,9 +554,9 @@ public class Compilador {
                     buffWriteCSEG.newLine();
                     buffWriteCSEG.write("R"+contRot+":");
                     buffWriteCSEG.newLine();
-                    buffWriteCSEG.write("\tmov AX, DS:[DI]");
+                    buffWriteCSEG.write("\tmov AX, DS:[SI]");
                     buffWriteCSEG.newLine();
-                    buffWriteCSEG.write("\tmov SI, DS:["+EXP_end+"]");
+                    buffWriteCSEG.write("\tmov DS:[DI], AX");
                     buffWriteCSEG.newLine();
                     buffWriteCSEG.write("\tadd DI, 1");
                     buffWriteCSEG.newLine();
@@ -858,6 +858,8 @@ public static void CA() throws IOException{
         auxLex = lex;
         casaToken("id");
         id_tipo = getTipo(auxLex);
+        id_end = getEnd(auxLex);
+        
         
 
         
@@ -866,7 +868,114 @@ public static void CA() throws IOException{
                 System.out.println("ID NÃO DECLARADO, LINHA: "+ erroLinha);
                 System.exit(0);
          }
-         casaToken(")");
+       
+        buffWriteCSEG.write("\tmov  DX, "+buffer_end+"");
+        buffWriteCSEG.newLine();
+        buffWriteCSEG.write("\tmov  AL, 0FFh");
+        buffWriteCSEG.newLine();
+        buffWriteCSEG.write("\tmov  DS:["+buffer_end+"], AL");
+        buffWriteCSEG.newLine();
+        buffWriteCSEG.write("\tmov  AH, 0Ah");
+        buffWriteCSEG.newLine();
+        buffWriteCSEG.write("\tint  21h");
+        buffWriteCSEG.newLine();
+        buffWriteCSEG.write("\tmov  AH, 02h");
+        buffWriteCSEG.newLine();
+        buffWriteCSEG.write("\tmov  DL, 0Dh");
+        buffWriteCSEG.newLine();
+        buffWriteCSEG.write("\tint  21h");
+        buffWriteCSEG.newLine();
+        buffWriteCSEG.write("\tmov  DL, 0Ah");
+        buffWriteCSEG.newLine();
+        buffWriteCSEG.write("\tint  21h");
+        buffWriteCSEG.newLine();
+        casaToken(")");
+         
+         if(id_tipo != "tipo-string"){
+            buffWriteCSEG.write("\tmov DI, "+(buffer_end+2)+"");
+            buffWriteCSEG.newLine();
+            buffWriteCSEG.write("\tmov AX, 0");
+            buffWriteCSEG.newLine();
+            buffWriteCSEG.write("\tmov CX, 10");
+            buffWriteCSEG.newLine();
+            buffWriteCSEG.write("\tmov DX, 1");
+            buffWriteCSEG.newLine();
+            buffWriteCSEG.write("\tmov BH, 0");
+            buffWriteCSEG.newLine();
+            buffWriteCSEG.write("\tmov BL, DS:[DI]");
+            buffWriteCSEG.newLine();
+            buffWriteCSEG.write("\tcmp BX, 2Dh");
+            buffWriteCSEG.newLine();
+            buffWriteCSEG.write("\tjne R"+contRot);
+            buffWriteCSEG.newLine();
+            buffWriteCSEG.write("\tmov DX, -1");
+            buffWriteCSEG.newLine();
+            buffWriteCSEG.write("\tadd DI, -1");
+            buffWriteCSEG.newLine();
+            buffWriteCSEG.write("\tmov BL, DS:[DI]");
+            buffWriteCSEG.newLine();
+            buffWriteCSEG.write("R"+contRot+":");
+            buffWriteCSEG.newLine();
+            buffWriteCSEG.write("\tpush DX");
+            buffWriteCSEG.newLine();
+            buffWriteCSEG.write("\tmov DX, 0");
+            buffWriteCSEG.newLine();
+            buffWriteCSEG.write("R"+(contRot+1)+":");
+            buffWriteCSEG.newLine();
+            buffWriteCSEG.write("\tcmp BX, 0Dh");
+            buffWriteCSEG.newLine();
+            buffWriteCSEG.write("\tje R"+(contRot+2));
+            buffWriteCSEG.newLine();
+            buffWriteCSEG.write("\timul CX");
+            buffWriteCSEG.newLine();
+            buffWriteCSEG.write("\tadd BX, -48");
+            buffWriteCSEG.newLine();
+            buffWriteCSEG.write("\tadd AX, BX");
+            buffWriteCSEG.newLine();
+            buffWriteCSEG.write("\tadd DI, 1");
+            buffWriteCSEG.newLine();
+            buffWriteCSEG.write("\tmov BH, 0");
+            buffWriteCSEG.newLine();
+            buffWriteCSEG.write("\tmov BL, DS:[DI]");
+            buffWriteCSEG.newLine();
+            buffWriteCSEG.write("\tjmp R"+(contRot+1));
+            buffWriteCSEG.newLine();
+            buffWriteCSEG.write("R"+(contRot+2)+":");
+            buffWriteCSEG.newLine();
+            buffWriteCSEG.write("\tpop CX");
+            buffWriteCSEG.newLine();
+            buffWriteCSEG.write("\timul CX");
+            buffWriteCSEG.newLine();
+            
+            buffWriteCSEG.write("\tmov DS:["+id_end+"], AX");
+            buffWriteCSEG.newLine();
+            contRot+=3;
+            
+         } else {
+            buffWriteCSEG.write("\tmov DI, "+id_end+"");
+            buffWriteCSEG.newLine();
+            buffWriteCSEG.write("\tmov SI, "+buffer_end+"");
+            buffWriteCSEG.newLine();
+            buffWriteCSEG.write("R"+contRot+":");
+            buffWriteCSEG.newLine();
+            buffWriteCSEG.write("\tmov AX, DS:[SI]");
+            buffWriteCSEG.newLine();
+            buffWriteCSEG.write("\tmov DS:["+id_end+"], AX");
+            buffWriteCSEG.newLine();
+            buffWriteCSEG.write("\tadd DI, 1");
+            buffWriteCSEG.newLine();
+            buffWriteCSEG.write("\tadd SI, 1");
+            buffWriteCSEG.newLine();
+            buffWriteCSEG.write("\tcmp AX, $");
+            buffWriteCSEG.newLine();
+            buffWriteCSEG.write("\tje R"+(contRot+1)+"");
+            buffWriteCSEG.newLine();
+            buffWriteCSEG.write("\tjmp R"+contRot+"");
+            buffWriteCSEG.newLine();
+            buffWriteCSEG.write("R"+(contRot+1)+":");
+            buffWriteCSEG.newLine();
+            contRot+=2;
+         }
          
          //ACAO SEMANTICA 28
          
@@ -882,6 +991,72 @@ public static void CA() throws IOException{
                    if(CE_tipo == "tipo-logico"){
                         System.out.println("Erro: Tipo incompativel - Linha: "+erroLinha);
                         System.exit(0);
+                   } else {
+                        buffWriteCSEG.write("\tmov di, "+EXP_end);
+                        buffWriteCSEG.newLine();
+
+                        buffWriteCSEG.write("\tmov cx, 0");
+                        buffWriteCSEG.newLine();
+                        buffWriteCSEG.write("\tcmp ax,0");
+                        buffWriteCSEG.newLine();
+                        buffWriteCSEG.write("\tjge R"+contRot); 
+                        buffWriteCSEG.newLine();
+                        buffWriteCSEG.write("\tmov bl, 2Dh");
+                        buffWriteCSEG.newLine();
+                        buffWriteCSEG.write("\tmov ds:[di], bl");
+                        buffWriteCSEG.newLine();
+                        buffWriteCSEG.write("\tadd di, 1");
+                        buffWriteCSEG.newLine();
+                        buffWriteCSEG.write("\tneg ax");
+                        buffWriteCSEG.newLine();
+                        buffWriteCSEG.write("R"+contRot+":");
+                        buffWriteCSEG.newLine();
+                        buffWriteCSEG.write("\tmov bx, 10");
+                        buffWriteCSEG.newLine();
+                        buffWriteCSEG.write("R"+(contRot+1)+":");
+                        buffWriteCSEG.newLine();
+                        buffWriteCSEG.write("\tadd cx, 1"); 
+                        buffWriteCSEG.newLine();
+                        buffWriteCSEG.write("\tmov dx, 0");
+                        buffWriteCSEG.newLine();
+                        buffWriteCSEG.write("\tidiv bx");
+                        buffWriteCSEG.newLine();
+                        buffWriteCSEG.write("\tpush dx");
+                        buffWriteCSEG.newLine();
+                        buffWriteCSEG.write("\tcmp ax, 0");
+                        buffWriteCSEG.newLine();
+                        buffWriteCSEG.write("\tjne R"+(contRot+1));
+                        buffWriteCSEG.newLine();
+
+                        buffWriteCSEG.write("R"+(contRot+2)+":");
+                        buffWriteCSEG.newLine();
+                        buffWriteCSEG.write("\tpop dx ");
+                        buffWriteCSEG.newLine();
+                        buffWriteCSEG.write("\tadd dx, 30h");
+                        buffWriteCSEG.newLine();
+                        buffWriteCSEG.write("\tmov ds:[di],dl");
+                        buffWriteCSEG.newLine();
+                        buffWriteCSEG.write("\tadd di, 1");
+                        buffWriteCSEG.newLine();
+                        buffWriteCSEG.write("\tadd cx, -1");
+                        buffWriteCSEG.newLine();
+                        buffWriteCSEG.write("\tcmp cx, 0");
+                        buffWriteCSEG.newLine();
+                        buffWriteCSEG.write("\tjne R"+(contRot+2));
+                        buffWriteCSEG.newLine();
+
+                        buffWriteCSEG.write("\tmov dl, 024h"); 
+                        buffWriteCSEG.newLine();
+                        buffWriteCSEG.write("\tmov ds:[di], dl"); 
+                        buffWriteCSEG.newLine();
+
+                        buffWriteCSEG.write("\tmov dx, "+EXP_end);
+                        buffWriteCSEG.newLine();
+                        buffWriteCSEG.write("\tmov ah, 09h");
+                        buffWriteCSEG.newLine();
+                        buffWriteCSEG.write("\tint 21h");
+                        buffWriteCSEG.newLine();
+           
                    }
 		   while(token_atual != ")"){
 			casaToken(",");
@@ -889,6 +1064,72 @@ public static void CA() throws IOException{
                         if(CE_tipo == "tipo-logico"){
                             System.out.println("Erro: Tipo incompativel - Linha: "+erroLinha);
                             System.exit(0);
+                        } else {
+                            buffWriteCSEG.write("\tmov di, "+EXP_end);
+                            buffWriteCSEG.newLine();
+
+                            buffWriteCSEG.write("\tmov cx, 0");
+                            buffWriteCSEG.newLine();
+                            buffWriteCSEG.write("\tcmp ax,0");
+                            buffWriteCSEG.newLine();
+                            buffWriteCSEG.write("\tjge R"+contRot); 
+                            buffWriteCSEG.newLine();
+                            buffWriteCSEG.write("\tmov bl, 2Dh");
+                            buffWriteCSEG.newLine();
+                            buffWriteCSEG.write("\tmov ds:[di], bl");
+                            buffWriteCSEG.newLine();
+                            buffWriteCSEG.write("\tadd di, 1");
+                            buffWriteCSEG.newLine();
+                            buffWriteCSEG.write("\tneg ax");
+                            buffWriteCSEG.newLine();
+                            buffWriteCSEG.write("R"+contRot+":");
+                            buffWriteCSEG.newLine();
+                            buffWriteCSEG.write("\tmov bx, 10");
+                            buffWriteCSEG.newLine();
+                            buffWriteCSEG.write("R"+(contRot+1)+":");
+                            buffWriteCSEG.newLine();
+                            buffWriteCSEG.write("\tadd cx, 1"); 
+                            buffWriteCSEG.newLine();
+                            buffWriteCSEG.write("\tmov dx, 0");
+                            buffWriteCSEG.newLine();
+                            buffWriteCSEG.write("\tidiv bx");
+                            buffWriteCSEG.newLine();
+                            buffWriteCSEG.write("\tpush dx");
+                            buffWriteCSEG.newLine();
+                            buffWriteCSEG.write("\tcmp ax, 0");
+                            buffWriteCSEG.newLine();
+                            buffWriteCSEG.write("\tjne R"+(contRot+1));
+                            buffWriteCSEG.newLine();
+
+                            buffWriteCSEG.write("R"+(contRot+2)+":");
+                            buffWriteCSEG.newLine();
+                            buffWriteCSEG.write("\tpop dx ");
+                            buffWriteCSEG.newLine();
+                            buffWriteCSEG.write("\tadd dx, 30h");
+                            buffWriteCSEG.newLine();
+                            buffWriteCSEG.write("\tmov ds:[di],dl");
+                            buffWriteCSEG.newLine();
+                            buffWriteCSEG.write("\tadd di, 1");
+                            buffWriteCSEG.newLine();
+                            buffWriteCSEG.write("\tadd cx, -1");
+                            buffWriteCSEG.newLine();
+                            buffWriteCSEG.write("\tcmp cx, 0");
+                            buffWriteCSEG.newLine();
+                            buffWriteCSEG.write("\tjne R"+(contRot+2));
+                            buffWriteCSEG.newLine();
+
+                            buffWriteCSEG.write("\tmov dl, 024h"); 
+                            buffWriteCSEG.newLine();
+                            buffWriteCSEG.write("\tmov ds:[di], dl"); 
+                            buffWriteCSEG.newLine();
+
+                            buffWriteCSEG.write("\tmov dx, "+EXP_end);
+                            buffWriteCSEG.newLine();
+                            buffWriteCSEG.write("\tmov ah, 09h");
+                            buffWriteCSEG.newLine();
+                            buffWriteCSEG.write("\tint 21h");
+                            buffWriteCSEG.newLine();
+           
                         }
 		   }
 		   casaToken(")");
@@ -900,13 +1141,165 @@ public static void CA() throws IOException{
                    if(CE_tipo == "tipo-logico"){
                         System.out.println("Erro: Tipo incompativel - Linha: "+erroLinha);
                         System.exit(0);
-                    }
+                    } else {
+                            buffWriteCSEG.write("\tmov di, "+EXP_end);
+                            buffWriteCSEG.newLine();
+
+                            buffWriteCSEG.write("\tmov cx, 0");
+                            buffWriteCSEG.newLine();
+                            buffWriteCSEG.write("\tcmp ax,0");
+                            buffWriteCSEG.newLine();
+                            buffWriteCSEG.write("\tjge R"+contRot); 
+                            buffWriteCSEG.newLine();
+                            buffWriteCSEG.write("\tmov bl, 2Dh");
+                            buffWriteCSEG.newLine();
+                            buffWriteCSEG.write("\tmov ds:[di], bl");
+                            buffWriteCSEG.newLine();
+                            buffWriteCSEG.write("\tadd di, 1");
+                            buffWriteCSEG.newLine();
+                            buffWriteCSEG.write("\tneg ax");
+                            buffWriteCSEG.newLine();
+                            buffWriteCSEG.write("R"+contRot+":");
+                            buffWriteCSEG.newLine();
+                            buffWriteCSEG.write("\tmov bx, 10");
+                            buffWriteCSEG.newLine();
+                            buffWriteCSEG.write("R"+(contRot+1)+":");
+                            buffWriteCSEG.newLine();
+                            buffWriteCSEG.write("\tadd cx, 1"); 
+                            buffWriteCSEG.newLine();
+                            buffWriteCSEG.write("\tmov dx, 0");
+                            buffWriteCSEG.newLine();
+                            buffWriteCSEG.write("\tidiv bx");
+                            buffWriteCSEG.newLine();
+                            buffWriteCSEG.write("\tpush dx");
+                            buffWriteCSEG.newLine();
+                            buffWriteCSEG.write("\tcmp ax, 0");
+                            buffWriteCSEG.newLine();
+                            buffWriteCSEG.write("\tjne R"+(contRot+1));
+                            buffWriteCSEG.newLine();
+
+                            buffWriteCSEG.write("R"+(contRot+2)+":");
+                            buffWriteCSEG.newLine();
+                            buffWriteCSEG.write("\tpop dx ");
+                            buffWriteCSEG.newLine();
+                            buffWriteCSEG.write("\tadd dx, 30h");
+                            buffWriteCSEG.newLine();
+                            buffWriteCSEG.write("\tmov ds:[di],dl");
+                            buffWriteCSEG.newLine();
+                            buffWriteCSEG.write("\tadd di, 1");
+                            buffWriteCSEG.newLine();
+                            buffWriteCSEG.write("\tadd cx, -1");
+                            buffWriteCSEG.newLine();
+                            buffWriteCSEG.write("\tcmp cx, 0");
+                            buffWriteCSEG.newLine();
+                            buffWriteCSEG.write("\tjne R"+(contRot+2));
+                            buffWriteCSEG.newLine();
+
+                            buffWriteCSEG.write("\tmov dl, 024h"); 
+                            buffWriteCSEG.newLine();
+                            buffWriteCSEG.write("\tmov ds:[di], dl"); 
+                            buffWriteCSEG.newLine();
+
+                            buffWriteCSEG.write("\tmov dx, "+EXP_end);
+                            buffWriteCSEG.newLine();
+                            buffWriteCSEG.write("\tmov ah, 09h");
+                            buffWriteCSEG.newLine();
+                            buffWriteCSEG.write("\tint 21h");
+                            buffWriteCSEG.newLine();
+                            buffWriteCSEG.write("\tmov  AH, 02h");
+                            buffWriteCSEG.newLine();
+                            buffWriteCSEG.write("\tmov  DL, 0Dh");
+                            buffWriteCSEG.newLine();
+                            buffWriteCSEG.write("\tint  21h");
+                            buffWriteCSEG.newLine();
+                            buffWriteCSEG.write("\tmov  DL, 0Ah");
+                            buffWriteCSEG.newLine();
+                            buffWriteCSEG.write("\tint  21h");
+                            buffWriteCSEG.newLine();
+           
+                        }
 		   while(token_atual != ")"){
                         casaToken(",");
                         CE_tipo = EXP();
                         if(CE_tipo == "tipo-logico"){
                             System.out.println("Erro: Tipo incompativel - Linha: "+erroLinha);
                             System.exit(0);
+                        }else {
+                            buffWriteCSEG.write("\tmov di, "+EXP_end);
+                            buffWriteCSEG.newLine();
+
+                            buffWriteCSEG.write("\tmov cx, 0");
+                            buffWriteCSEG.newLine();
+                            buffWriteCSEG.write("\tcmp ax,0");
+                            buffWriteCSEG.newLine();
+                            buffWriteCSEG.write("\tjge R"+contRot); 
+                            buffWriteCSEG.newLine();
+                            buffWriteCSEG.write("\tmov bl, 2Dh");
+                            buffWriteCSEG.newLine();
+                            buffWriteCSEG.write("\tmov ds:[di], bl");
+                            buffWriteCSEG.newLine();
+                            buffWriteCSEG.write("\tadd di, 1");
+                            buffWriteCSEG.newLine();
+                            buffWriteCSEG.write("\tneg ax");
+                            buffWriteCSEG.newLine();
+                            buffWriteCSEG.write("R"+contRot+":");
+                            buffWriteCSEG.newLine();
+                            buffWriteCSEG.write("\tmov bx, 10");
+                            buffWriteCSEG.newLine();
+                            buffWriteCSEG.write("R"+(contRot+1)+":");
+                            buffWriteCSEG.newLine();
+                            buffWriteCSEG.write("\tadd cx, 1"); 
+                            buffWriteCSEG.newLine();
+                            buffWriteCSEG.write("\tmov dx, 0");
+                            buffWriteCSEG.newLine();
+                            buffWriteCSEG.write("\tidiv bx");
+                            buffWriteCSEG.newLine();
+                            buffWriteCSEG.write("\tpush dx");
+                            buffWriteCSEG.newLine();
+                            buffWriteCSEG.write("\tcmp ax, 0");
+                            buffWriteCSEG.newLine();
+                            buffWriteCSEG.write("\tjne R"+(contRot+1));
+                            buffWriteCSEG.newLine();
+
+                            buffWriteCSEG.write("R"+(contRot+2)+":");
+                            buffWriteCSEG.newLine();
+                            buffWriteCSEG.write("\tpop dx ");
+                            buffWriteCSEG.newLine();
+                            buffWriteCSEG.write("\tadd dx, 30h");
+                            buffWriteCSEG.newLine();
+                            buffWriteCSEG.write("\tmov ds:[di],dl");
+                            buffWriteCSEG.newLine();
+                            buffWriteCSEG.write("\tadd di, 1");
+                            buffWriteCSEG.newLine();
+                            buffWriteCSEG.write("\tadd cx, -1");
+                            buffWriteCSEG.newLine();
+                            buffWriteCSEG.write("\tcmp cx, 0");
+                            buffWriteCSEG.newLine();
+                            buffWriteCSEG.write("\tjne R"+(contRot+2));
+                            buffWriteCSEG.newLine();
+
+                            buffWriteCSEG.write("\tmov dl, 024h"); 
+                            buffWriteCSEG.newLine();
+                            buffWriteCSEG.write("\tmov ds:[di], dl"); 
+                            buffWriteCSEG.newLine();
+
+                            buffWriteCSEG.write("\tmov dx, "+EXP_end);
+                            buffWriteCSEG.newLine();
+                            buffWriteCSEG.write("\tmov ah, 09h");
+                            buffWriteCSEG.newLine();
+                            buffWriteCSEG.write("\tint 21h");
+                            buffWriteCSEG.newLine();
+                            buffWriteCSEG.write("\tmov  AH, 02h");
+                            buffWriteCSEG.newLine();
+                            buffWriteCSEG.write("\tmov  DL, 0Dh");
+                            buffWriteCSEG.newLine();
+                            buffWriteCSEG.write("\tint  21h");
+                            buffWriteCSEG.newLine();
+                            buffWriteCSEG.write("\tmov  DL, 0Ah");
+                            buffWriteCSEG.newLine();
+                            buffWriteCSEG.write("\tint  21h");
+                            buffWriteCSEG.newLine();
+           
                         }
 		   }
 		   casaToken(")");
@@ -1504,16 +1897,17 @@ public static void CA() throws IOException{
 
     //PROGRAMA PRINCIPAL
     public static void main(String[] args) throws FileNotFoundException, IOException {
-        // TODO code application logic here
-       //path = args[0];
+      // TODO code application logic here
+      //path = args[0];
       //path = "C:/Users/lucas/Documents/NetBeansProjects/Compilador/src/compilador/novo_teste.l";
       path = "C:/Users/Pedro/Documents/FACULDADE_PEDRO/Compiladores/BACKUP_TP_COMPILA/Compilador/src/compilador/t1.l";
       pathDSEG = "C:/Users/Pedro/Documents/FACULDADE_PEDRO/Compiladores/BACKUP_TP_COMPILA/Compilador/src/compilador/DSEG.txt";
       pathCSEG = "C:/Users/Pedro/Documents/FACULDADE_PEDRO/Compiladores/BACKUP_TP_COMPILA/Compilador/src/compilador/CSEG.txt";
-      
+      pathFINAL = "C:/Users/Pedro/Documents/FACULDADE_PEDRO/Compiladores/BACKUP_TP_COMPILA/Compilador/src/compilador/saida.asm";
       //path = "C:/wamp64/www/Compilador_01_2017/src/compilador/t1.l";
       //pathDSEG = "C:/wamp64/www/Compilador_01_2017/src/compilador/DSEG.txt";
       //pathCSEG = "C:/wamp64/www/Compilador_01_2017/src/compilador/CSEG.txt";
+      //pathFINAL = "C:/wamp64/www/Compilador_01_2017/src/compilador/CSEG.txt";
       erroLinha=0;
 
       buffRead = new BufferedReader(new FileReader(path));
@@ -1525,6 +1919,24 @@ public static void CA() throws IOException{
       buffWriteDSEG.close();
       buffWriteCSEG.close();
       buffRead.close();
+      
+      buffWriteFinal = new BufferedWriter(new FileWriter(pathFINAL));
+      buffReadDSEG = new BufferedReader(new FileReader(pathDSEG));
+      
+      String ler = buffReadDSEG.readLine();
+      while(ler != null){
+          buffWriteFinal.write(ler);
+          buffWriteFinal.newLine();
+          ler = buffReadDSEG.readLine();
+      }
+      
+      buffReadCSEG = new BufferedReader(new FileReader(pathCSEG));
+      ler = buffReadCSEG.readLine();
+      while(ler != null){
+          buffWriteFinal.write(ler);
+          buffWriteFinal.newLine();
+          ler = buffReadCSEG.readLine();
+      }
       
       System.out.println("COMPILADO COM SUCESSO");
     }
